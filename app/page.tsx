@@ -10,7 +10,7 @@ import { Footer } from '@/components/Footer'
 const QuickBiteLanding = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [activeCategory, setActiveCategory] = useState('all')
-  const [hoveredCard, setHoveredCard] = useState<null|number>(null)
+  const [hoveredCard, setHoveredCard] = useState<null | number>(null)
   const containerRef = useRef(null)
 
   const { scrollYProgress } = useScroll()
@@ -21,7 +21,7 @@ const QuickBiteLanding = () => {
   const smoothScale = useSpring(scaleProgress, { stiffness: 100, damping: 30 })
 
   // Animated counter hook
-  const Counter = ({ value, duration = 2 }) => {
+  const Counter = ({ value, duration = 2 }: { value: string; duration?: number }) => {
     const [count, setCount] = useState(0)
     const ref = useRef(null)
     const inView = useInView(ref, { once: true })
