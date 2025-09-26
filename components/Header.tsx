@@ -159,7 +159,7 @@ export function Header() {
                             {['Menu', 'About'].map((item) => (
                                 <motion.a
                                     key={item}
-                                    href={`#${item.toLowerCase()}`}
+                                    href={`/${item.toLowerCase()}`}
                                     whileTap={{ scale: 0.95 }}
                                     className="block py-2 text-lg text-gray-300"
                                     onClick={() => setIsMenuOpen(false)}
