@@ -6,6 +6,7 @@ import { Mail, Phone, Lock, ArrowRight, Loader2, AlertCircle, Eye, EyeOff } from
 import { authApi } from '@/lib/api/auth'
 import { useRouter } from 'next/navigation'
 import { OTPInput } from './OTPInput'
+import { useAuth } from '@/context/AuthContext'
 
 type LoginMethod = 'phone' | 'email' | 'password'
 type UserType = 'customer' | 'restaurant' | 'rider'
@@ -17,6 +18,7 @@ interface LoginFormProps {
 
 export function LoginForm({ userType, onSuccess }: LoginFormProps) {
     const router = useRouter()
+    const { login } = useAuth()
     const [method, setMethod] = useState<LoginMethod>('phone')
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState('')
@@ -84,11 +86,7 @@ export function LoginForm({ userType, onSuccess }: LoginFormProps) {
     }
 
     const handleLoginSuccess = (response: any) => {
-        // Store token (implementation depends on auth strategy, e.g., cookies or local storage)
-        // For now, we assume the backend handles cookies or we store it here
-        localStorage.setItem('access_token', response.data.access_token)
-        localStorage.setItem('refresh_token', response.data.refresh_token)
-        localStorage.setItem('user', JSON.stringify(response.data.user))
+        login(response.data.access_token, response.data.refresh_token, response.data.user)
 
         if (onSuccess) {
             onSuccess()
