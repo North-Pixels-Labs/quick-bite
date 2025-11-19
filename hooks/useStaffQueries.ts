@@ -1,0 +1,54 @@
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { staffApi } from '@/lib/api'
+import type { CreateStaffRequest, UpdateStaffRequest } from '@/types/restaurant.types'
+
+// Query keys
+export const staffKeys = {
+    all: ['staff'] as const,
+    list: (restaurantId: string) => [...staffKeys.all, 'list', restaurantId] as const,
+}
+
+// Fetch staff list
+export function useStaff(restaurantId: string) {
+    return useQuery({
+        queryKey: staffKeys.list(restaurantId),
+        queryFn: async () => {
+            const { data } = await staffApi.list(restaurantId)
+            return data.data
+        },
+        enabled: !!restaurantId,
+    })
+}
+
+// Create staff mutation
+export function useCreateStaff() {
+    const queryClient = useQueryClient()
+
+    return useMutation({
+        mutationFn: ({ restaurantId, data }: { restaurantId: string; data: CreateStaffRequest }) =>
+            staffApi.create(restaurantId, data),
+        onSuccess: (_, variables) => {
+            queryClient.invalidateQueries({ queryKey: staffKeys.list(variables.restaurantId) })
+        },
+    })
+}
+
+// Update staff mutation
+export function useUpdateStaff() {
+    const queryClient = useQueryClient()
+
+    return useMutation({
+        mutationFn: ({
+            restaurantId,
+            staffId,
+            data
+        }: {
+            restaurantId: string
+            staffId: string
+            data: UpdateStaffRequest
+        }) => staffApi.update(restaurantId, staffId, data),
+        onSuccess: (_, variables) => {
+            queryClient.invalidateQueries({ queryKey: staffKeys.list(variables.restaurantId) })
+        },
+    })
+}
