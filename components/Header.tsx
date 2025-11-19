@@ -3,11 +3,16 @@
 import React, { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Zap, Menu, X, ChevronDown, Store, Bike, User } from 'lucide-react'
+// import { useAuth } from '@/context/AuthContext'
 
 export function Header() {
     const [isMenuOpen, setIsMenuOpen] = useState(false)
     const [loginDropdown, setLoginDropdown] = useState(false)
     const [registerDropdown, setRegisterDropdown] = useState(false)
+    // const { isAuthenticated, user, logout } = useAuth()
+    const isAuthenticated = false
+    const user: any = null
+    const logout = () => { }
 
     const userTypes = [
         { id: 'restaurant', label: 'Restaurant/Store', icon: Store },
@@ -49,81 +54,84 @@ export function Header() {
                                 </motion.a>
                             ))}
 
-                            {/* Login Dropdown */}
-                            <div className="relative">
-                                <motion.button
-                                    onClick={() => {
-                                        setLoginDropdown(!loginDropdown)
-                                        setRegisterDropdown(false)
-                                    }}
-                                    whileHover={{ y: -2 }}
-                                    className="flex items-center gap-1 text-gray-300 hover:text-white transition-colors"
-                                >
-                                    Login <ChevronDown className="w-4 h-4" />
-                                </motion.button>
+                            {/* Auth Section - Temporarily showing login/register dropdowns */}
+                            <>
+                                {/* Login Dropdown */}
+                                <div className="relative">
+                                    <motion.button
+                                        onClick={() => {
+                                            setLoginDropdown(!loginDropdown)
+                                            setRegisterDropdown(false)
+                                        }}
+                                        whileHover={{ y: -2 }}
+                                        className="flex items-center gap-1 text-gray-300 hover:text-white transition-colors"
+                                    >
+                                        Login <ChevronDown className="w-4 h-4" />
+                                    </motion.button>
 
-                                <AnimatePresence>
-                                    {loginDropdown && (
-                                        <motion.div
-                                            initial={{ opacity: 0, y: 10 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                            exit={{ opacity: 0, y: 10 }}
-                                            className="absolute top-full mt-2 right-0 w-48 bg-black/95 backdrop-blur-xl border border-white/10 rounded-xl overflow-hidden"
-                                        >
-                                            {userTypes.map((type) => (
-                                                <motion.a
-                                                    key={type.id}
-                                                    href={`/login/${type.id}`}
-                                                    whileHover={{ backgroundColor: 'rgba(255, 255, 255, 0.1)' }}
-                                                    className="w-full px-4 py-3 text-left flex items-center gap-3 text-gray-300 hover:text-white transition-colors"
-                                                    onClick={() => setLoginDropdown(false)}
-                                                >
-                                                    <type.icon className="w-4 h-4" />
-                                                    {type.label}
-                                                </motion.a>
-                                            ))}
-                                        </motion.div>
-                                    )}
-                                </AnimatePresence>
-                            </div>
+                                    <AnimatePresence>
+                                        {loginDropdown && (
+                                            <motion.div
+                                                initial={{ opacity: 0, y: 10 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                exit={{ opacity: 0, y: 10 }}
+                                                className="absolute top-full mt-2 right-0 w-48 bg-black/95 backdrop-blur-xl border border-white/10 rounded-xl overflow-hidden"
+                                            >
+                                                {userTypes.map((type) => (
+                                                    <motion.a
+                                                        key={type.id}
+                                                        href={`/login/${type.id}`}
+                                                        whileHover={{ backgroundColor: 'rgba(255, 255, 255, 0.1)' }}
+                                                        className="w-full px-4 py-3 text-left flex items-center gap-3 text-gray-300 hover:text-white transition-colors"
+                                                        onClick={() => setLoginDropdown(false)}
+                                                    >
+                                                        <type.icon className="w-4 h-4" />
+                                                        {type.label}
+                                                    </motion.a>
+                                                ))}
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
+                                </div>
 
-                            {/* Register Dropdown */}
-                            <div className="relative">
-                                <motion.button
-                                    onClick={() => {
-                                        setRegisterDropdown(!registerDropdown)
-                                        setLoginDropdown(false)
-                                    }}
-                                    whileHover={{ y: -2 }}
-                                    className="flex items-center gap-1 text-gray-300 hover:text-white transition-colors"
-                                >
-                                    Register <ChevronDown className="w-4 h-4" />
-                                </motion.button>
+                                {/* Register Dropdown */}
+                                <div className="relative">
+                                    <motion.button
+                                        onClick={() => {
+                                            setRegisterDropdown(!registerDropdown)
+                                            setLoginDropdown(false)
+                                        }}
+                                        whileHover={{ y: -2 }}
+                                        className="flex items-center gap-1 text-gray-300 hover:text-white transition-colors"
+                                    >
+                                        Register <ChevronDown className="w-4 h-4" />
+                                    </motion.button>
 
-                                <AnimatePresence>
-                                    {registerDropdown && (
-                                        <motion.div
-                                            initial={{ opacity: 0, y: 10 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                            exit={{ opacity: 0, y: 10 }}
-                                            className="absolute top-full mt-2 right-0 w-48 bg-black/95 backdrop-blur-xl border border-white/10 rounded-xl overflow-hidden"
-                                        >
-                                            {userTypes.map((type) => (
-                                                <motion.a
-                                                    key={type.id}
-                                                    href={`/register/${type.id}`}
-                                                    whileHover={{ backgroundColor: 'rgba(255, 255, 255, 0.1)' }}
-                                                    className="w-full px-4 py-3 text-left flex items-center gap-3 text-gray-300 hover:text-white transition-colors"
-                                                    onClick={() => setRegisterDropdown(false)}
-                                                >
-                                                    <type.icon className="w-4 h-4" />
-                                                    {type.label}
-                                                </motion.a>
-                                            ))}
-                                        </motion.div>
-                                    )}
-                                </AnimatePresence>
-                            </div>
+                                    <AnimatePresence>
+                                        {registerDropdown && (
+                                            <motion.div
+                                                initial={{ opacity: 0, y: 10 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                exit={{ opacity: 0, y: 10 }}
+                                                className="absolute top-full mt-2 right-0 w-48 bg-black/95 backdrop-blur-xl border border-white/10 rounded-xl overflow-hidden"
+                                            >
+                                                {userTypes.map((type) => (
+                                                    <motion.a
+                                                        key={type.id}
+                                                        href={`/register/${type.id}`}
+                                                        whileHover={{ backgroundColor: 'rgba(255, 255, 255, 0.1)' }}
+                                                        className="w-full px-4 py-3 text-left flex items-center gap-3 text-gray-300 hover:text-white transition-colors"
+                                                        onClick={() => setRegisterDropdown(false)}
+                                                    >
+                                                        <type.icon className="w-4 h-4" />
+                                                        {type.label}
+                                                    </motion.a>
+                                                ))}
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
+                                </div>
+                            </>
                         </div>
 
                         <div className="flex items-center gap-4">
