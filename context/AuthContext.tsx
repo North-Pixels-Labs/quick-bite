@@ -7,7 +7,7 @@ interface User {
     id: string
     email: string
     phone: string
-    user_type: 'customer' | 'restaurant' | 'rider'
+    user_type: 'customer' | 'restaurant_owner' | 'rider'
     first_name?: string
     last_name?: string
     [key: string]: any

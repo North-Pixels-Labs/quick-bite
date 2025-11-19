@@ -91,13 +91,14 @@ export function LoginForm({ userType, onSuccess }: LoginFormProps) {
         if (onSuccess) {
             onSuccess()
         } else {
-            // Default redirects based on user type
-            const redirectMap = {
+            // Default redirects based on user type from backend
+            const backendUserType = response.data.user.user_type
+            const redirectMap: Record<string, string> = {
                 customer: '/dashboard',
-                restaurant: '/dashboard/restaurant',
+                restaurant_owner: '/dashboard/restaurant',
                 rider: '/dashboard/rider'
             }
-            router.push(redirectMap[userType])
+            router.push(redirectMap[backendUserType] || '/dashboard')
         }
     }
 

@@ -6,13 +6,13 @@ import { useAuth } from '@/context/AuthContext'
 
 interface ProtectedRouteProps {
     children: React.ReactNode
-    allowedUserTypes?: ('customer' | 'restaurant' | 'rider')[]
+    allowedUserTypes?: ('customer' | 'restaurant_owner' | 'rider')[]
     redirectTo?: string
 }
 
 export function ProtectedRoute({
     children,
-    allowedUserTypes = ['customer', 'restaurant', 'rider'],
+    allowedUserTypes = ['customer', 'restaurant_owner', 'rider'],
     redirectTo
 }: ProtectedRouteProps) {
     const { isAuthenticated, user, isLoading } = useAuth()
