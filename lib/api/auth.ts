@@ -42,25 +42,65 @@ export const authApi = {
     },
 
     registerRestaurant: async (data: any) => {
-        // Note: The backend might expect a specific format for restaurant registration.
-        // Based on the handler, it seems to use the generic /auth/register endpoint which takes a 'user_type'.
-        // However, we might need to call a separate endpoint to create the restaurant profile AFTER user registration,
-        // OR the register endpoint handles it if we pass the right data.
-        // Looking at AuthHandler.Register, it binds to auth.RegisterRequest.
-        // Let's assume we register the user first, then create the restaurant.
-        // BUT, the user request says "Restaurant flow review the @[go-quickbite/spec/core]".
-        // The spec says: "Create Users record... Create Restaurants record...".
-        // Let's stick to the /auth/register endpoint for now and set user_type to 'restaurant_owner'.
-
-        const response = await fetch(`${API_BASE_URL}/auth/register`, {
+        // 1. Register User
+        const registerRes = await fetch(`${API_BASE_URL}/auth/register`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                ...data,
+                email: data.email,
+                phone: data.phone,
+                password: data.password,
                 user_type: 'restaurant_owner'
             }),
         });
-        if (!response.ok) throw new Error(await response.text());
-        return response.json();
+
+        if (!registerRes.ok) {
+            const errorText = await registerRes.text();
+            try {
+                const errorJson = JSON.parse(errorText);
+                throw new Error(errorJson.error || 'Registration failed');
+            } catch (e) {
+                throw new Error(errorText || 'Registration failed');
+            }
+        }
+
+        const registerData = await registerRes.json();
+        const token = registerData.data.access_token;
+
+        // 3. Create Restaurant Profile
+        const restaurantRes = await fetch(`${API_BASE_URL}/restaurants`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                name: data.restaurantName,
+                cuisine_type: data.cuisineType || 'General', // Default if missing
+                phone: data.phone,
+                email: data.email,
+                street_address: data.streetAddress,
+                city: data.city,
+                state: data.state,
+                postal_code: data.postalCode,
+                country: data.country,
+                delivery_fee: 0,
+                minimum_order: 0,
+                estimated_delivery_time: 30,
+                has_own_delivery: false
+            })
+        });
+
+        if (!restaurantRes.ok) {
+            const errorText = await restaurantRes.text();
+            try {
+                const errorJson = JSON.parse(errorText);
+                throw new Error(errorJson.error || 'Failed to create restaurant profile');
+            } catch (e) {
+                throw new Error(errorText || 'Failed to create restaurant profile');
+            }
+        }
+
+        return restaurantRes.json();
     }
 };

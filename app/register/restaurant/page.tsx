@@ -27,6 +27,11 @@ export default function RestaurantRegister() {
         restaurantName: '',
         ownerName: '',
         cuisineType: '',
+        streetAddress: '',
+        city: '',
+        state: '',
+        postalCode: '',
+        country: '',
     })
 
     // Step 1: Email
@@ -288,17 +293,31 @@ export default function RestaurantRegister() {
                                             <p className="text-gray-400">Complete your profile to get started.</p>
                                         </div>
 
-                                        <div className="space-y-2">
-                                            <label className="text-sm font-medium text-gray-300">Restaurant Name</label>
-                                            <div className="relative">
-                                                <Store className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div className="space-y-2">
+                                                <label className="text-sm font-medium text-gray-300">Restaurant Name</label>
+                                                <div className="relative">
+                                                    <Store className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                                                    <input
+                                                        type="text"
+                                                        name="restaurantName"
+                                                        value={formData.restaurantName}
+                                                        onChange={handleInputChange}
+                                                        className="w-full pl-12 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 outline-none text-white"
+                                                        placeholder="My Awesome Restaurant"
+                                                        required
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div className="space-y-2">
+                                                <label className="text-sm font-medium text-gray-300">Cuisine Type</label>
                                                 <input
                                                     type="text"
-                                                    name="restaurantName"
-                                                    value={formData.restaurantName}
+                                                    name="cuisineType"
+                                                    value={formData.cuisineType}
                                                     onChange={handleInputChange}
-                                                    className="w-full pl-12 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 outline-none text-white"
-                                                    placeholder="My Awesome Restaurant"
+                                                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 outline-none text-white"
+                                                    placeholder="e.g. Italian, Fast Food"
                                                     required
                                                 />
                                             </div>
@@ -321,35 +340,103 @@ export default function RestaurantRegister() {
                                         </div>
 
                                         <div className="space-y-2">
-                                            <label className="text-sm font-medium text-gray-300">Password</label>
-                                            <div className="relative">
-                                                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                                            <label className="text-sm font-medium text-gray-300">Street Address</label>
+                                            <input
+                                                type="text"
+                                                name="streetAddress"
+                                                value={formData.streetAddress}
+                                                onChange={handleInputChange}
+                                                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 outline-none text-white"
+                                                placeholder="123 Main St"
+                                                required
+                                            />
+                                        </div>
+
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="space-y-2">
+                                                <label className="text-sm font-medium text-gray-300">City</label>
                                                 <input
-                                                    type="password"
-                                                    name="password"
-                                                    value={formData.password}
+                                                    type="text"
+                                                    name="city"
+                                                    value={formData.city}
                                                     onChange={handleInputChange}
-                                                    className="w-full pl-12 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 outline-none text-white"
-                                                    placeholder="••••••••"
+                                                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 outline-none text-white"
+                                                    placeholder="Accra"
                                                     required
-                                                    minLength={8}
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <label className="text-sm font-medium text-gray-300">State/Region</label>
+                                                <input
+                                                    type="text"
+                                                    name="state"
+                                                    value={formData.state}
+                                                    onChange={handleInputChange}
+                                                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 outline-none text-white"
+                                                    placeholder="Greater Accra"
+                                                    required
                                                 />
                                             </div>
                                         </div>
 
-                                        <div className="space-y-2">
-                                            <label className="text-sm font-medium text-gray-300">Confirm Password</label>
-                                            <div className="relative">
-                                                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="space-y-2">
+                                                <label className="text-sm font-medium text-gray-300">Postal Code</label>
                                                 <input
-                                                    type="password"
-                                                    name="confirmPassword"
-                                                    value={formData.confirmPassword}
+                                                    type="text"
+                                                    name="postalCode"
+                                                    value={formData.postalCode}
                                                     onChange={handleInputChange}
-                                                    className="w-full pl-12 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 outline-none text-white"
-                                                    placeholder="••••••••"
+                                                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 outline-none text-white"
+                                                    placeholder="00233"
                                                     required
                                                 />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <label className="text-sm font-medium text-gray-300">Country</label>
+                                                <input
+                                                    type="text"
+                                                    name="country"
+                                                    value={formData.country}
+                                                    onChange={handleInputChange}
+                                                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 outline-none text-white"
+                                                    placeholder="Ghana"
+                                                    required
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div className="space-y-2">
+                                                <label className="text-sm font-medium text-gray-300">Password</label>
+                                                <div className="relative">
+                                                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                                                    <input
+                                                        type="password"
+                                                        name="password"
+                                                        value={formData.password}
+                                                        onChange={handleInputChange}
+                                                        className="w-full pl-12 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 outline-none text-white"
+                                                        placeholder="••••••••"
+                                                        required
+                                                        minLength={8}
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div className="space-y-2">
+                                                <label className="text-sm font-medium text-gray-300">Confirm Password</label>
+                                                <div className="relative">
+                                                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                                                    <input
+                                                        type="password"
+                                                        name="confirmPassword"
+                                                        value={formData.confirmPassword}
+                                                        onChange={handleInputChange}
+                                                        className="w-full pl-12 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 outline-none text-white"
+                                                        placeholder="••••••••"
+                                                        required
+                                                    />
+                                                </div>
                                             </div>
                                         </div>
 
@@ -387,8 +474,8 @@ export default function RestaurantRegister() {
                         </div>
                     </motion.div>
                 </div>
-            </div>
+            </div >
             <Footer />
-        </div>
+        </div >
     )
 }
