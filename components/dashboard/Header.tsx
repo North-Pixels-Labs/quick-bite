@@ -2,8 +2,28 @@
 
 import React from 'react'
 import { Bell, Search } from 'lucide-react'
+import { useAuth } from '@/context/AuthContext'
 
 export const Header = () => {
+    const { user } = useAuth()
+
+    // Get user initials for avatar
+    const getInitials = () => {
+        if (!user) return 'U'
+        const firstInitial = user.first_name?.[0] || ''
+        const lastInitial = user.last_name?.[0] || ''
+        return (firstInitial + lastInitial).toUpperCase() || 'U'
+    }
+
+    // Get display name
+    const getDisplayName = () => {
+        if (!user) return 'User'
+        if (user.first_name && user.last_name) {
+            return `${user.first_name} ${user.last_name}`
+        }
+        return user.first_name || user.email || 'User'
+    }
+
     return (
         <header className="h-16 bg-[#121212] border-b border-white/10 flex items-center justify-between px-6 fixed top-0 right-0 left-64 z-40">
             {/* Search */}
@@ -25,11 +45,11 @@ export const Header = () => {
 
                 <div className="flex items-center gap-3 pl-4 border-l border-white/10">
                     <div className="text-right hidden sm:block">
-                        <p className="text-sm font-medium text-white">Tasty Bites</p>
-                        <p className="text-xs text-gray-500">Restaurant Owner</p>
+                        <p className="text-sm font-medium text-white">{getDisplayName()}</p>
+                        <p className="text-xs text-gray-500">{user?.email || 'Restaurant Owner'}</p>
                     </div>
                     <div className="w-8 h-8 bg-gradient-to-br from-orange-500 to-red-500 rounded-full flex items-center justify-center text-white font-bold text-xs">
-                        TB
+                        {getInitials()}
                     </div>
                 </div>
             </div>

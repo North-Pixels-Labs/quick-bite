@@ -3,6 +3,7 @@
 import React from 'react'
 import { motion } from 'framer-motion'
 import { TrendingUp, ShoppingBag, Users, DollarSign, Clock, ArrowUpRight } from 'lucide-react'
+import { useAuth } from '@/context/AuthContext'
 
 const stats = [
     {
@@ -43,13 +44,27 @@ const recentOrders = [
 ]
 
 export default function DashboardOverview() {
+    const { user } = useAuth()
+
+    const getGreeting = () => {
+        const hour = new Date().getHours()
+        if (hour < 12) return 'Good morning'
+        if (hour < 18) return 'Good afternoon'
+        return 'Good evening'
+    }
+
+    const getUserName = () => {
+        if (!user) return ''
+        return user.first_name || user.email?.split('@')[0] || 'there'
+    }
+
     return (
         <div className="space-y-8">
             {/* Header Section */}
             <div className="flex items-center justify-between">
                 <div>
                     <h1 className="text-2xl font-bold text-white">Dashboard Overview</h1>
-                    <p className="text-gray-400">Welcome back, here's what's happening today.</p>
+                    <p className="text-gray-400">{getGreeting()}, {getUserName()}! Here's what's happening today.</p>
                 </div>
                 <button className="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg font-medium transition-colors">
                     Download Report
@@ -109,8 +124,8 @@ export default function DashboardOverview() {
                                 <div className="text-right">
                                     <p className="text-sm font-bold text-white">{order.total}</p>
                                     <span className={`text-xs px-2 py-1 rounded-full ${order.status === 'Preparing' ? 'bg-blue-500/20 text-blue-400' :
-                                            order.status === 'Ready' ? 'bg-yellow-500/20 text-yellow-400' :
-                                                'bg-green-500/20 text-green-400'
+                                        order.status === 'Ready' ? 'bg-yellow-500/20 text-yellow-400' :
+                                            'bg-green-500/20 text-green-400'
                                         }`}>
                                         {order.status}
                                     </span>

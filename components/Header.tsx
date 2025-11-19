@@ -72,7 +72,7 @@ export function Header() {
                                                 initial={{ opacity: 0, y: 10 }}
                                                 animate={{ opacity: 1, y: 0 }}
                                                 exit={{ opacity: 0, y: 10 }}
-                                                className="absolute top-full mt-2 right-0 w-48 bg-black/95 backdrop-blur-xl border border-white/10 rounded-xl overflow-hidden"
+                                                className="absolute top-full mt-2 right-0 w-48 bg-black/95 backdrop-blur-xl border border-white/20 rounded-xl overflow-hidden"
                                             >
                                                 <div className="px-4 py-3 border-b border-white/10">
                                                     <p className="text-sm text-white font-medium">{user.first_name} {user.last_name}</p>

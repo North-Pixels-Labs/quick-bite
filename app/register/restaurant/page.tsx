@@ -104,10 +104,14 @@ export default function RestaurantRegister() {
                 email: formData.email,
                 phone: formData.phone,
                 password: formData.password,
-                // Additional fields would be handled by the backend or a separate profile update
-                // For now, we just register the user. 
-                // Ideally, we'd pass restaurant_name etc. if the API supports it, 
-                // or redirect to an onboarding flow after login.
+                restaurantName: formData.restaurantName,
+                ownerName: formData.ownerName,
+                cuisineType: formData.cuisineType,
+                streetAddress: formData.streetAddress,
+                city: formData.city,
+                state: formData.state,
+                postalCode: formData.postalCode,
+                country: formData.country,
             })
             setStep('success')
             setTimeout(() => {
