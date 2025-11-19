@@ -102,5 +102,40 @@ export const authApi = {
         }
 
         return restaurantRes.json();
-    }
+    },
+    sendLoginOTP: async (identifier: string, type: 'email' | 'phone') => {
+        const endpoint = type === 'email' ? '/auth/login/email/send-otp' : '/auth/login/phone/send-otp';
+        const body = type === 'email' ? { email: identifier } : { phone: identifier };
+
+        const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body),
+        });
+        if (!response.ok) throw new Error(await response.text());
+        return response.json();
+    },
+
+    loginWithOTP: async (identifier: string, otp: string, type: 'email' | 'phone') => {
+        const endpoint = type === 'email' ? '/auth/login/email/verify-otp' : '/auth/login/phone/verify-otp';
+        const body = type === 'email' ? { email: identifier, otp } : { phone: identifier, otp };
+
+        const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body),
+        });
+        if (!response.ok) throw new Error(await response.text());
+        return response.json();
+    },
+
+    loginWithPassword: async (email: string, password: string) => {
+        const response = await fetch(`${API_BASE_URL}/auth/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password }),
+        });
+        if (!response.ok) throw new Error(await response.text());
+        return response.json();
+    },
 };
