@@ -11,7 +11,7 @@ export default function DashboardLayout({
     children: React.ReactNode
 }) {
     return (
-        <ProtectedRoute allowedUserTypes={['restaurant_owner']}>
+        <ProtectedRoute allowedUserTypes={['restaurant_owner', 'restaurant_staff']}>
             <div className="min-h-screen bg-black text-white">
                 <Sidebar />
                 <Header />
