@@ -42,22 +42,26 @@ export default function OrdersPage() {
 
     return (
         <div className="space-y-6">
-            <div className="flex items-center justify-between">
-                <div>
-                    <h1 className="text-2xl font-bold text-white">Order Management</h1>
-                    <p className="text-gray-400">Track and update order statuses</p>
+            <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                    <div>
+                        <h1 className="text-2xl font-bold text-white">Order Management</h1>
+                        <p className="text-gray-400">Track and update order statuses</p>
+                    </div>
+                    <div>
+                        <select value={restaurantId || ''} onChange={(e)=> setSelectedRestaurantId(e.target.value)} className="px-3 py-2 bg-white/5 border border-white/10 rounded text-white">
+                            {(restaurants||[]).map(r=> (
+                                <option key={r.id} value={r.id} className="bg-[#1A1A1A]">{r.name}</option>
+                            ))}
+                        </select>
+                    </div>
                 </div>
                 <div className="flex items-center gap-2">
-                    <select value={restaurantId || ''} onChange={(e)=> setSelectedRestaurantId(e.target.value)} className="px-3 py-2 bg-white/5 border border-white/10 rounded text-white">
-                        {(restaurants||[]).map(r=> (
-                            <option key={r.id} value={r.id} className="bg-[#1A1A1A]">{r.name}</option>
-                        ))}
-                    </select>
                     <input value={search} onChange={(e)=> setSearch(e.target.value)} placeholder="Search by order #" className="px-3 py-2 bg-white/5 border border-white/10 rounded text-white" />
                     <div className="flex items-center gap-2 bg-white/5 rounded-lg p-1">
-                    {(['all','pending','confirmed','preparing','ready','picked_up','out_for_delivery','delivered','cancelled'] as const).map((s) => (
-                        <button key={s} onClick={() => { setFilter(s) }} className={`px-3 py-1.5 rounded ${filter===s?'bg-orange-500 text-white':'text-gray-400 hover:text-white'}`}>{s.replace('_',' ')}</button>
-                    ))}
+                        {(['all','pending','confirmed','preparing','ready','picked_up','out_for_delivery','delivered','cancelled'] as const).map((s) => (
+                            <button key={s} onClick={() => { setFilter(s) }} className={`px-3 py-1.5 rounded ${filter===s?'bg-orange-500 text-white':'text-gray-400 hover:text-white'}`}>{s.replace('_',' ')}</button>
+                        ))}
                     </div>
                 </div>
             </div>
