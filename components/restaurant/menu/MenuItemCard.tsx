@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { MoreVertical, Image as ImageIcon, Leaf, Wheat, Edit, Trash2, Eye, Settings } from 'lucide-react'
 import { assetUrl } from '@/lib/utils'
@@ -30,6 +31,7 @@ export default function MenuItemCard({ item, restaurantId, viewMode, categories 
     const updateAvailability = useUpdateItemAvailability()
     const deleteItem = useDeleteItem()
     const updateItem = useUpdateItem()
+    const router = useRouter()
 
     const handleToggleAvailability = async () => {
         try {
@@ -78,7 +80,7 @@ export default function MenuItemCard({ item, restaurantId, viewMode, categories 
                     {/* Image */}
                     <div
                         className="w-20 h-20 bg-white/5 rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden cursor-pointer"
-                        onClick={() => setShowDetailModal(true)}
+                        onClick={() => router.push(`/dashboard/restaurant/menu/${item.id}`)}
                     >
                         {item.image_url ? (
                             <img src={assetUrl(item.image_url)} alt={item.name} className="w-full h-full object-cover" />
@@ -92,7 +94,7 @@ export default function MenuItemCard({ item, restaurantId, viewMode, categories 
                         <div className="flex items-center gap-2 mb-1">
                             <h4
                                 className="text-white font-medium truncate cursor-pointer hover:text-orange-400 transition-colors"
-                                onClick={() => setShowDetailModal(true)}
+                                onClick={() => router.push(`/dashboard/restaurant/menu/${item.id}`)}
                             >
                                 {item.name}
                             </h4>
@@ -137,10 +139,10 @@ export default function MenuItemCard({ item, restaurantId, viewMode, categories 
                                         className="fixed inset-0 z-10"
                                         onClick={() => setShowMenu(false)}
                                     />
-                                    <div className="absolute right-0 top-full mt-2 w-48 bg-[#1A1A1A] border border-white/10 rounded-lg shadow-xl z-20 overflow-hidden">
+                                    <div className="absolute right-0 top-full mt-2 w-48 bg-[#1A1A1A] border border-white/10 rounded-lg shadow-xl z-50 overflow-visible">
                                         <button
                                             onClick={() => {
-                                                setShowDetailModal(true)
+                                                router.push(`/dashboard/restaurant/menu/${item.id}`)
                                                 setShowMenu(false)
                                             }}
                                             className="w-full px-4 py-2.5 text-left text-white hover:bg-white/5 transition-colors flex items-center gap-2"
@@ -228,12 +230,12 @@ export default function MenuItemCard({ item, restaurantId, viewMode, categories 
             <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="bg-white/5 border border-white/10 rounded-xl overflow-hidden hover:border-white/20 transition-colors"
+                className="bg-white/5 border border-white/10 rounded-xl hover:border-white/20 transition-colors"
             >
                 {/* Image */}
                 <div
                     className="aspect-video bg-white/5 flex items-center justify-center overflow-hidden cursor-pointer"
-                    onClick={() => setShowDetailModal(true)}
+                    onClick={() => router.push(`/dashboard/restaurant/menu/${item.id}`)}
                 >
                     {item.image_url ? (
                         <img src={assetUrl(item.image_url)} alt={item.name} className="w-full h-full object-cover" />
@@ -249,7 +251,7 @@ export default function MenuItemCard({ item, restaurantId, viewMode, categories 
                             <div className="flex items-center gap-2 mb-1">
                                 <h4
                                     className="text-white font-medium cursor-pointer hover:text-orange-400 transition-colors"
-                                    onClick={() => setShowDetailModal(true)}
+                                    onClick={() => router.push(`/dashboard/restaurant/menu/${item.id}`)}
                                 >
                                     {item.name}
                                 </h4>
@@ -277,10 +279,10 @@ export default function MenuItemCard({ item, restaurantId, viewMode, categories 
                                         className="fixed inset-0 z-10"
                                         onClick={() => setShowMenu(false)}
                                     />
-                                    <div className="absolute right-0 top-full mt-2 w-48 bg-[#1A1A1A] border border-white/10 rounded-lg shadow-xl z-20 overflow-hidden">
+                                    <div className="absolute right-0 top-full mt-2 w-48 bg-[#1A1A1A] border border-white/10 rounded-lg shadow-xl z-50 overflow-visible">
                                         <button
                                             onClick={() => {
-                                                setShowDetailModal(true)
+                                                router.push(`/dashboard/restaurant/menu/${item.id}`)
                                                 setShowMenu(false)
                                             }}
                                             className="w-full px-4 py-2.5 text-left text-white hover:bg-white/5 transition-colors flex items-center gap-2"
