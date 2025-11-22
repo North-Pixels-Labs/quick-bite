@@ -1,10 +1,10 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { Plus, Search, Grid, List } from 'lucide-react'
 import { useRestaurants } from '@/hooks/useRestaurantQueries'
-import { useMenuCategories, useMenuItems } from '@/hooks/useMenuQueries'
+import { useMenuCategories, useMenuItems, useUpdateCategory, useUpdateItem } from '@/hooks/useMenuQueries'
 import LoadingSpinner from '@/components/shared/LoadingSpinner'
 import EmptyState from '@/components/shared/EmptyState'
 import MenuCategoryCard from '@/components/restaurant/menu/MenuCategoryCard'
@@ -25,6 +25,8 @@ export default function MenuPage() {
     // Fetch menu data
     const { data: categories, isLoading: loadingCategories } = useMenuCategories(restaurantId || '')
     const { data: items, isLoading: loadingItems } = useMenuItems(restaurantId || '')
+    const updateCategory = useUpdateCategory()
+    const updateItem = useUpdateItem()
 
     const isLoading = loadingRestaurants || loadingCategories || loadingItems
 
@@ -41,6 +43,11 @@ export default function MenuPage() {
         acc[item.category_id] = list
         return acc
     }, {} as Record<string, typeof filteredItems>)
+
+    const [dragCatId, setDragCatId] = useState<string | null>(null)
+    const [dragItemId, setDragItemId] = useState<string | null>(null)
+
+    const sortedCategories = useMemo(() => (categories || []).slice().sort((a, b) => a.sort_order - b.sort_order), [categories])
 
     if (isLoading) {
         return (
@@ -127,14 +134,32 @@ export default function MenuPage() {
                 />
             ) : (
                 <div className="space-y-8">
-                    {categories
-                        .sort((a, b) => a.sort_order - b.sort_order)
-                        .map((category) => (
+                    {sortedCategories.map((category) => (
                             <motion.div
                                 key={category.id}
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 className="space-y-4"
+                                draggable
+                                onDragStart={() => setDragCatId(category.id)}
+                                onDragOver={(e) => e.preventDefault()}
+                                onDrop={async () => {
+                                    if (!dragCatId || dragCatId === category.id) return
+                                    const fromIdx = sortedCategories.findIndex((c) => c.id === dragCatId)
+                                    const toIdx = sortedCategories.findIndex((c) => c.id === category.id)
+                                    if (fromIdx < 0 || toIdx < 0) return
+                                    const reordered = sortedCategories.slice()
+                                    const moved = reordered.splice(fromIdx, 1)[0]
+                                    reordered.splice(toIdx, 0, moved)
+                                    // assign sort_order in steps of 10
+                                    for (let i = 0; i < reordered.length; i++) {
+                                        const targetOrder = i * 10
+                                        if (reordered[i].sort_order !== targetOrder) {
+                                            await updateCategory.mutateAsync({ restaurantId: restaurantId!, categoryId: reordered[i].id, data: { sort_order: targetOrder } })
+                                        }
+                                    }
+                                    setDragCatId(null)
+                                }}
                             >
                                 <MenuCategoryCard category={category} restaurantId={restaurantId} />
 
@@ -142,15 +167,39 @@ export default function MenuPage() {
                                 {itemsByCategory?.[category.id]?.length ? (
                                     <div className={viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4' : 'space-y-3'}>
                                         {itemsByCategory[category.id]
+                                            .slice()
                                             .sort((a, b) => a.sort_order - b.sort_order)
                                             .map((item) => (
-                                                <MenuItemCard
+                                                <div
                                                     key={item.id}
-                                                    item={item}
-                                                    restaurantId={restaurantId}
-                                                    viewMode={viewMode}
-                                                    categories={categories}
-                                                />
+                                                    draggable
+                                                    onDragStart={() => setDragItemId(item.id)}
+                                                    onDragOver={(e) => e.preventDefault()}
+                                                    onDrop={async () => {
+                                                        if (!dragItemId || dragItemId === item.id) return
+                                                        const list = itemsByCategory[category.id].slice().sort((a, b) => a.sort_order - b.sort_order)
+                                                        const fromIdx = list.findIndex((it) => it.id === dragItemId)
+                                                        const toIdx = list.findIndex((it) => it.id === item.id)
+                                                        if (fromIdx < 0 || toIdx < 0) return
+                                                        const reordered = list.slice()
+                                                        const moved = reordered.splice(fromIdx, 1)[0]
+                                                        reordered.splice(toIdx, 0, moved)
+                                                        for (let i = 0; i < reordered.length; i++) {
+                                                            const targetOrder = i * 10
+                                                            if (reordered[i].sort_order !== targetOrder) {
+                                                                await updateItem.mutateAsync({ restaurantId: restaurantId!, itemId: reordered[i].id, data: { sort_order: targetOrder } })
+                                                            }
+                                                        }
+                                                        setDragItemId(null)
+                                                    }}
+                                                >
+                                                    <MenuItemCard
+                                                        item={item}
+                                                        restaurantId={restaurantId}
+                                                        viewMode={viewMode}
+                                                        categories={categories}
+                                                    />
+                                                </div>
                                             ))}
                                     </div>
                                 ) : (
