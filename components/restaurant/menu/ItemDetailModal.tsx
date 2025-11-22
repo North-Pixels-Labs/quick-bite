@@ -2,6 +2,7 @@
 
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, Clock, Flame, Leaf, Wheat, DollarSign, Tag } from 'lucide-react'
+import { assetUrl } from '@/lib/utils'
 import { useMenuItemOptions } from '@/hooks/useMenuQueries'
 import LoadingSpinner from '@/components/shared/LoadingSpinner'
 import type { MenuItem } from '@/types/restaurant.types'
@@ -32,7 +33,7 @@ export default function ItemDetailModal({ item, restaurantId, onClose, onEdit }:
                     {/* Header with Image */}
                     <div className="relative h-64 bg-white/5">
                         {item.image_url ? (
-                            <img src={item.image_url} alt={item.name} className="w-full h-full object-cover" />
+                            <img src={assetUrl(item.image_url)} alt={item.name} className="w-full h-full object-cover" />
                         ) : (
                             <div className="w-full h-full flex items-center justify-center">
                                 <Tag className="w-16 h-16 text-gray-600" />

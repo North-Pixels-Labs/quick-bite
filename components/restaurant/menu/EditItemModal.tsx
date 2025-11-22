@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, Upload, Image as ImageIcon } from 'lucide-react'
+import { assetUrl } from '@/lib/utils'
 import { useUpdateItem, useUploadItemImage, useDeleteItemImage } from '@/hooks/useMenuQueries'
 import { useToast } from '@/components/shared/Toast'
 import LoadingSpinner from '@/components/shared/LoadingSpinner'
@@ -29,7 +30,8 @@ export default function EditItemModal({ item, restaurantId, categories, onClose 
         sort_order: item.sort_order,
     })
     const [imageFile, setImageFile] = useState<File | null>(null)
-    const [imagePreview, setImagePreview] = useState<string | null>(item.image_url || null)
+    const [imagePreview, setImagePreview] = useState<string | null>(item.image_url ? assetUrl(item.image_url) : null)
+    const [serverError, setServerError] = useState<string | null>(null)
 
     const { showToast } = useToast()
     const updateItem = useUpdateItem()
@@ -39,12 +41,14 @@ export default function EditItemModal({ item, restaurantId, categories, onClose 
     const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0]
         if (file) {
-            setImageFile(file)
-            const reader = new FileReader()
-            reader.onloadend = () => {
-                setImagePreview(reader.result as string)
-            }
-            reader.readAsDataURL(file)
+            cropToSquare(file).then((cropped) => {
+                setImageFile(cropped)
+                const reader = new FileReader()
+                reader.onloadend = () => setImagePreview(reader.result as string)
+                reader.readAsDataURL(cropped)
+            }).catch(() => {
+                setImageFile(file)
+            })
         }
     }
 
@@ -95,11 +99,14 @@ export default function EditItemModal({ item, restaurantId, categories, onClose 
 
             // Upload new image if selected
             if (imageFile) {
-                await uploadImage.mutateAsync({
-                    restaurantId,
-                    itemId: item.id,
-                    file: imageFile,
-                })
+                setServerError(null)
+                try {
+                    await uploadImage.mutateAsync({ restaurantId, itemId: item.id, file: imageFile })
+                } catch (err: any) {
+                    const msg = err?.response?.data?.message || 'Image upload failed'
+                    setServerError(msg)
+                    return
+                }
             }
 
             showToast('success', 'Menu item updated successfully')
@@ -133,45 +140,48 @@ export default function EditItemModal({ item, restaurantId, categories, onClose 
 
                     {/* Form */}
                     <form onSubmit={handleSubmit} className="space-y-6">
-                        {/* Image Upload */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-300 mb-2">
-                                Item Image
-                            </label>
-                            <div className="flex items-center gap-4">
-                                <div className="w-32 h-32 bg-white/5 rounded-lg flex items-center justify-center overflow-hidden">
-                                    {imagePreview ? (
-                                        <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
-                                    ) : (
-                                        <ImageIcon className="w-12 h-12 text-gray-600" />
-                                    )}
-                                </div>
-                                <div className="flex-1 space-y-2">
-                                    <label className="block">
-                                        <input
-                                            type="file"
-                                            accept="image/*"
-                                            onChange={handleImageChange}
-                                            className="hidden"
-                                        />
-                                        <span className="px-4 py-2 bg-white/5 hover:bg-white/10 text-white rounded-lg font-medium transition-colors cursor-pointer inline-flex items-center gap-2">
-                                            <Upload className="w-4 h-4" />
-                                            {imagePreview ? 'Change Image' : 'Upload Image'}
-                                        </span>
-                                    </label>
-                                    {imagePreview && (
-                                        <button
-                                            type="button"
-                                            onClick={handleDeleteImage}
-                                            disabled={deleteImage.isPending}
-                                            className="block px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-lg font-medium transition-colors disabled:opacity-50"
-                                        >
-                                            {deleteImage.isPending ? 'Deleting...' : 'Delete Image'}
-                                        </button>
-                                    )}
-                                </div>
+                    {/* Image Upload */}
+                    <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                            Item Image
+                        </label>
+                        <div className="flex items-center gap-4">
+                            <div className="w-32 h-32 bg-white/5 rounded-lg flex items-center justify-center overflow-hidden">
+                                {imagePreview ? (
+                                    <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
+                                ) : (
+                                    <ImageIcon className="w-12 h-12 text-gray-600" />
+                                )}
+                            </div>
+                            <div className="flex-1 space-y-2">
+                                <label className="block">
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={handleImageChange}
+                                        className="hidden"
+                                    />
+                                    <span className="px-4 py-2 bg-white/5 hover:bg-white/10 text-white rounded-lg font-medium transition-colors cursor-pointer inline-flex items-center gap-2">
+                                        <Upload className="w-4 h-4" />
+                                        {imagePreview ? 'Change Image' : 'Upload Image'}
+                                    </span>
+                                </label>
+                                {serverError && (
+                                    <p className="text-sm text-red-400">{serverError}</p>
+                                )}
+                                {imagePreview && (
+                                    <button
+                                        type="button"
+                                        onClick={handleDeleteImage}
+                                        disabled={deleteImage.isPending}
+                                        className="block px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-lg font-medium transition-colors disabled:opacity-50"
+                                    >
+                                        {deleteImage.isPending ? 'Deleting...' : 'Delete Image'}
+                                    </button>
+                                )}
                             </div>
                         </div>
+                    </div>
 
                         {/* Basic Info */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -346,4 +356,24 @@ export default function EditItemModal({ item, restaurantId, categories, onClose 
             </div>
         </AnimatePresence>
     )
+}
+
+async function cropToSquare(file: File): Promise<File> {
+    const img = document.createElement('img')
+    img.src = URL.createObjectURL(file)
+    await new Promise((res) => { img.onload = res })
+    const size = Math.min(img.naturalWidth, img.naturalHeight)
+    const sx = (img.naturalWidth - size) / 2
+    const sy = (img.naturalHeight - size) / 2
+    const canvas = document.createElement('canvas')
+    canvas.width = 800
+    canvas.height = 800
+    const ctx = canvas.getContext('2d')!
+    ctx.drawImage(img, sx, sy, size, size, 0, 0, 800, 800)
+    return new Promise<File>((resolve, reject) => {
+        canvas.toBlob((blob) => {
+            if (!blob) return reject(new Error('crop failed'))
+            resolve(new File([blob], file.name.replace(/\.[^.]+$/, '') + '-cropped.jpg', { type: 'image/jpeg' }))
+        }, 'image/jpeg', 0.9)
+    })
 }

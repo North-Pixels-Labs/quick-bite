@@ -311,3 +311,91 @@ export function useCreateOptionValue() {
         },
     })
 }
+
+export function useUpdateOption() {
+    const queryClient = useQueryClient()
+
+    return useMutation({
+        mutationFn: ({
+            restaurantId,
+            itemId,
+            optionId,
+            data,
+        }: {
+            restaurantId: string
+            itemId: string
+            optionId: string
+            data: Partial<{ name: string; type: string; is_required: boolean; sort_order: number }>
+        }) => menuOptionApi.updateOption(restaurantId, itemId, optionId, data),
+        onSuccess: (_, variables) => {
+            queryClient.invalidateQueries({ queryKey: menuKeys.options(variables.restaurantId, variables.itemId) })
+        },
+    })
+}
+
+export function useDeleteOption() {
+    const queryClient = useQueryClient()
+
+    return useMutation({
+        mutationFn: ({
+            restaurantId,
+            itemId,
+            optionId,
+        }: {
+            restaurantId: string
+            itemId: string
+            optionId: string
+        }) => menuOptionApi.deleteOption(restaurantId, itemId, optionId),
+        onSuccess: (_, variables) => {
+            queryClient.invalidateQueries({ queryKey: menuKeys.options(variables.restaurantId, variables.itemId) })
+        },
+    })
+}
+
+export function useUpdateOptionValue() {
+    const queryClient = useQueryClient()
+
+    return useMutation({
+        mutationFn: ({
+            restaurantId,
+            itemId,
+            optionId,
+            valueId,
+            data,
+        }: {
+            restaurantId: string
+            itemId: string
+            optionId: string
+            valueId: string
+            data: Partial<{ name: string; price_modifier: number; is_default: boolean; sort_order: number }>
+        }) => menuOptionApi.updateValue(restaurantId, itemId, optionId, valueId, data),
+        onSuccess: (_, variables) => {
+            queryClient.invalidateQueries({
+                queryKey: menuKeys.optionValues(variables.restaurantId, variables.itemId, variables.optionId),
+            })
+        },
+    })
+}
+
+export function useDeleteOptionValue() {
+    const queryClient = useQueryClient()
+
+    return useMutation({
+        mutationFn: ({
+            restaurantId,
+            itemId,
+            optionId,
+            valueId,
+        }: {
+            restaurantId: string
+            itemId: string
+            optionId: string
+            valueId: string
+        }) => menuOptionApi.deleteValue(restaurantId, itemId, optionId, valueId),
+        onSuccess: (_, variables) => {
+            queryClient.invalidateQueries({
+                queryKey: menuKeys.optionValues(variables.restaurantId, variables.itemId, variables.optionId),
+            })
+        },
+    })
+}

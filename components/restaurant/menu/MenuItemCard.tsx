@@ -3,7 +3,8 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { MoreVertical, Image as ImageIcon, Leaf, Wheat, Edit, Trash2, Eye, Settings } from 'lucide-react'
-import { useUpdateItemAvailability, useDeleteItem } from '@/hooks/useMenuQueries'
+import { assetUrl } from '@/lib/utils'
+import { useUpdateItemAvailability, useDeleteItem, useUpdateItem } from '@/hooks/useMenuQueries'
 import { useToast } from '@/components/shared/Toast'
 import ConfirmDialog from '@/components/shared/ConfirmDialog'
 import EditItemModal from './EditItemModal'
@@ -28,6 +29,7 @@ export default function MenuItemCard({ item, restaurantId, viewMode, categories 
     const { showToast } = useToast()
     const updateAvailability = useUpdateItemAvailability()
     const deleteItem = useDeleteItem()
+    const updateItem = useUpdateItem()
 
     const handleToggleAvailability = async () => {
         try {
@@ -52,6 +54,15 @@ export default function MenuItemCard({ item, restaurantId, viewMode, categories 
         }
     }
 
+    const move = async (delta: number) => {
+        try {
+            await updateItem.mutateAsync({ restaurantId, itemId: item.id, data: { sort_order: item.sort_order + delta } })
+            showToast('success', 'Sort order updated')
+        } catch {
+            showToast('error', 'Failed to update sort order')
+        }
+    }
+
     const formatPrice = (price: number) => {
         return `$${(price / 100).toFixed(2)}`
     }
@@ -70,7 +81,7 @@ export default function MenuItemCard({ item, restaurantId, viewMode, categories 
                         onClick={() => setShowDetailModal(true)}
                     >
                         {item.image_url ? (
-                            <img src={item.image_url} alt={item.name} className="w-full h-full object-cover" />
+                            <img src={assetUrl(item.image_url)} alt={item.name} className="w-full h-full object-cover" />
                         ) : (
                             <ImageIcon className="w-8 h-8 text-gray-600" />
                         )}
@@ -97,6 +108,10 @@ export default function MenuItemCard({ item, restaurantId, viewMode, categories 
                     {/* Price and Actions */}
                     <div className="flex items-center gap-4">
                         <span className="text-lg font-bold text-white">{formatPrice(item.price)}</span>
+                        <div className="flex items-center gap-1">
+                            <button onClick={() => move(-10)} className="px-2 py-1 text-xs bg-white/5 hover:bg-white/10 rounded text-white">↑</button>
+                            <button onClick={() => move(10)} className="px-2 py-1 text-xs bg-white/5 hover:bg-white/10 rounded text-white">↓</button>
+                        </div>
                         <label className="relative inline-flex items-center cursor-pointer">
                             <input
                                 type="checkbox"
@@ -221,7 +236,7 @@ export default function MenuItemCard({ item, restaurantId, viewMode, categories 
                     onClick={() => setShowDetailModal(true)}
                 >
                     {item.image_url ? (
-                        <img src={item.image_url} alt={item.name} className="w-full h-full object-cover" />
+                        <img src={assetUrl(item.image_url)} alt={item.name} className="w-full h-full object-cover" />
                     ) : (
                         <ImageIcon className="w-12 h-12 text-gray-600" />
                     )}

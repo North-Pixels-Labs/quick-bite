@@ -36,12 +36,11 @@ export default function MenuPage() {
 
     // Group items by category
     const itemsByCategory = filteredItems?.reduce((acc, item) => {
-        if (!acc[item.category_id]) {
-            acc[item.category_id] = []
-        }
-        acc[item.category_id].push(item)
+        const list = acc[item.category_id] ?? []
+        list.push(item)
+        acc[item.category_id] = list
         return acc
-    }, {} as Record<string, typeof items>)
+    }, {} as Record<string, typeof filteredItems>)
 
     if (isLoading) {
         return (

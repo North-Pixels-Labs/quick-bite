@@ -98,11 +98,23 @@ export const menuOptionApi = {
     createOption: (restaurantId: string, itemId: string, data: { name: string; type: string; is_required: boolean; sort_order: number }) =>
         apiClient.post<ApiResponse<MenuItemOption>>(`/restaurants/${restaurantId}/menu/items/${itemId}/options`, data),
 
+    updateOption: (restaurantId: string, itemId: string, optionId: string, data: Partial<{ name: string; type: string; is_required: boolean; sort_order: number }>) =>
+        apiClient.put<ApiResponse<MenuItemOption>>(`/restaurants/${restaurantId}/menu/items/${itemId}/options/${optionId}`, data),
+
+    deleteOption: (restaurantId: string, itemId: string, optionId: string) =>
+        apiClient.delete<ApiResponse<void>>(`/restaurants/${restaurantId}/menu/items/${itemId}/options/${optionId}`),
+
     listValues: (restaurantId: string, itemId: string, optionId: string) =>
         apiClient.get<ApiResponse<MenuItemOptionValue[]>>(`/restaurants/${restaurantId}/menu/items/${itemId}/options/${optionId}/values`),
 
     createValue: (restaurantId: string, itemId: string, optionId: string, data: { name: string; price_modifier: number; is_default: boolean; sort_order: number }) =>
         apiClient.post<ApiResponse<MenuItemOptionValue>>(`/restaurants/${restaurantId}/menu/items/${itemId}/options/${optionId}/values`, data),
+
+    updateValue: (restaurantId: string, itemId: string, optionId: string, valueId: string, data: Partial<{ name: string; price_modifier: number; is_default: boolean; sort_order: number }>) =>
+        apiClient.put<ApiResponse<MenuItemOptionValue>>(`/restaurants/${restaurantId}/menu/items/${itemId}/options/${optionId}/values/${valueId}`, data),
+
+    deleteValue: (restaurantId: string, itemId: string, optionId: string, valueId: string) =>
+        apiClient.delete<ApiResponse<void>>(`/restaurants/${restaurantId}/menu/items/${itemId}/options/${optionId}/values/${valueId}`),
 }
 
 // Staff APIs
