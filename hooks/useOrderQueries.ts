@@ -5,6 +5,7 @@ import type { UpdateOrderStatusRequest } from '@/types/restaurant.types'
 // Query keys
 export const orderKeys = {
     all: ['orders'] as const,
+    restaurant: (restaurantId: string, status?: string) => [...orderKeys.all, 'restaurant', restaurantId, status || ''] as const,
     detail: (id: string) => [...orderKeys.all, 'detail', id] as const,
     statusHistory: (id: string) => [...orderKeys.all, 'statusHistory', id] as const,
 }
@@ -32,5 +33,15 @@ export function useUpdateOrderStatus() {
             queryClient.invalidateQueries({ queryKey: orderKeys.detail(variables.orderId) })
             queryClient.invalidateQueries({ queryKey: orderKeys.statusHistory(variables.orderId) })
         },
+    })
+}
+export function useRestaurantOrders(restaurantId: string, status?: string) {
+    return useQuery({
+        queryKey: orderKeys.restaurant(restaurantId, status),
+        queryFn: async () => {
+            const { data } = await orderApi.listForRestaurant(restaurantId, { status })
+            return data.data
+        },
+        enabled: !!restaurantId,
     })
 }
