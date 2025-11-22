@@ -145,6 +145,12 @@ export const deliveryZoneApi = {
 export const orderApi = {
     listForRestaurant: (restaurantId: string, params?: { status?: string }) =>
         apiClient.get<ApiResponse<Order[]>>(`/restaurants/${restaurantId}/orders`, { params }),
+
+    getDetail: (orderId: string) =>
+        apiClient.get<ApiResponse<{ order: Order; items: Array<{ item: any; options: any[] }> }>>(`/orders/${orderId}`),
+
+    notifyRiders: (orderId: string) =>
+        apiClient.post<ApiResponse<void>>(`/orders/${orderId}/assignments`, {}),
     updateStatus: (orderId: string, data: UpdateOrderStatusRequest) =>
         apiClient.put<ApiResponse<Order>>(`/orders/${orderId}/status`, data),
 
