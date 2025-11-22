@@ -2,19 +2,22 @@
 
 import React, { useMemo, useState } from 'react'
 import { useRestaurants } from '@/hooks/useRestaurantQueries'
-import { useRestaurantOrders, useUpdateOrderStatus, useOrderStatusHistory } from '@/hooks/useOrderQueries'
+import { useRestaurantOrders, useUpdateOrderStatus, useOrderStatusHistory, useOrderDetail, useNotifyRiders } from '@/hooks/useOrderQueries'
 import LoadingSpinner from '@/components/shared/LoadingSpinner'
 
 const ORDER_STATUSES = ['pending','confirmed','preparing','ready','picked_up','out_for_delivery','delivered','cancelled']
 
 export default function OrdersPage() {
     const { data: restaurants, isLoading: loadingRestaurants } = useRestaurants()
-    const restaurantId = restaurants?.[0]?.id
+    const [selectedRestaurantId, setSelectedRestaurantId] = useState<string | null>(null)
+    const restaurantId = selectedRestaurantId || restaurants?.[0]?.id
     const [filter, setFilter] = useState<string>('pending')
     const { data: orders, isLoading: loadingOrders, refetch } = useRestaurantOrders(restaurantId || '', filter === 'all' ? undefined : filter)
     const updateStatus = useUpdateOrderStatus()
     const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null)
     const { data: history } = useOrderStatusHistory(selectedOrderId || '')
+    const { data: orderDetail } = useOrderDetail(selectedOrderId || '')
+    const notifyRiders = useNotifyRiders()
 
     const isLoading = loadingRestaurants || loadingOrders
 
@@ -39,10 +42,17 @@ export default function OrdersPage() {
                     <h1 className="text-2xl font-bold text-white">Order Management</h1>
                     <p className="text-gray-400">Track and update order statuses</p>
                 </div>
-                <div className="flex items-center gap-2 bg-white/5 rounded-lg p-1">
+                <div className="flex items-center gap-2">
+                    <select value={restaurantId || ''} onChange={(e)=> setSelectedRestaurantId(e.target.value)} className="px-3 py-2 bg-white/5 border border-white/10 rounded text-white">
+                        {(restaurants||[]).map(r=> (
+                            <option key={r.id} value={r.id} className="bg-[#1A1A1A]">{r.name}</option>
+                        ))}
+                    </select>
+                    <div className="flex items-center gap-2 bg-white/5 rounded-lg p-1">
                     {(['all','pending','confirmed','preparing','ready','picked_up','out_for_delivery','delivered','cancelled'] as const).map((s) => (
                         <button key={s} onClick={() => { setFilter(s) }} className={`px-3 py-1.5 rounded ${filter===s?'bg-orange-500 text-white':'text-gray-400 hover:text-white'}`}>{s.replace('_',' ')}</button>
                     ))}
+                    </div>
                 </div>
             </div>
 
@@ -75,6 +85,7 @@ export default function OrdersPage() {
                                         }} className="px-3 py-1.5 bg-white/5 hover:bg-white/10 rounded text-white text-sm">{next.replace('_',' ')}</button>
                                     ))}
                                     <button onClick={()=>setSelectedOrderId(o.id)} className="px-3 py-1.5 bg-white/5 hover:bg-white/10 rounded text-white text-sm">History</button>
+                                    <button onClick={async ()=>{ await notifyRiders.mutateAsync({ orderId: o.id }); }} className="px-3 py-1.5 bg-white/5 hover:bg-white/10 rounded text-white text-sm">Notify Riders</button>
                                 </div>
                             </div>
                             {selectedOrderId===o.id && (
@@ -89,6 +100,24 @@ export default function OrdersPage() {
                                             ))}
                                         </ul>
                                     )}
+                                    {orderDetail?.items?.length ? (
+                                        <div className="mt-3">
+                                            <div className="text-sm text-gray-300 mb-2">Items</div>
+                                            <ul className="text-xs text-gray-400 space-y-1">
+                                                {orderDetail.items.map((di)=> (
+                                                    <li key={di.item.id}>
+                                                        {di.item.quantity}× {di.item.menu_item_id}
+                                                        {di.options?.length ? (
+                                                            <span className="ml-2 text-gray-500">[options: {di.options.length}]</span>
+                                                        ) : null}
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                            {orderDetail.order.special_instructions && (
+                                                <div className="mt-2 text-xs text-gray-400">Notes: {orderDetail.order.special_instructions}</div>
+                                            )}
+                                        </div>
+                                    ) : null}
                                 </div>
                             )}
                         </div>
