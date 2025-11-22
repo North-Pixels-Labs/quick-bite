@@ -45,3 +45,24 @@ export function useRestaurantOrders(restaurantId: string, status?: string) {
         enabled: !!restaurantId,
     })
 }
+
+export function useOrderDetail(orderId: string) {
+    return useQuery({
+        queryKey: orderKeys.detail(orderId),
+        queryFn: async () => {
+            const { data } = await orderApi.getDetail(orderId)
+            return data.data
+        },
+        enabled: !!orderId,
+    })
+}
+
+export function useNotifyRiders() {
+    const queryClient = useQueryClient()
+    return useMutation({
+        mutationFn: ({ orderId }: { orderId: string }) => orderApi.notifyRiders(orderId),
+        onSuccess: (_, variables) => {
+            queryClient.invalidateQueries({ queryKey: orderKeys.detail(variables.orderId) })
+        },
+    })
+}
