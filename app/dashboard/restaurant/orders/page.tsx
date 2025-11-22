@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useMemo, useState } from 'react'
+import React, { useMemo, useState, useEffect, useRef } from 'react'
 import { useRestaurants } from '@/hooks/useRestaurantQueries'
 import { useRestaurantOrders, useUpdateOrderStatus, useOrderStatusHistory, useOrderDetail, useNotifyRiders } from '@/hooks/useOrderQueries'
 import LoadingSpinner from '@/components/shared/LoadingSpinner'
@@ -20,6 +20,8 @@ export default function OrdersPage() {
     const notifyRiders = useNotifyRiders()
 
     const isLoading = loadingRestaurants || loadingOrders
+    const [search, setSearch] = useState('')
+    const [selectedIds, setSelectedIds] = useState<string[]>([])
 
     const canUpdateTo = (current: string) => {
         const map: Record<string,string[]> = {
@@ -71,66 +73,143 @@ export default function OrdersPage() {
                     <p className="text-gray-400">No orders for this filter.</p>
                 </div>
             ) : (
-                <div className="space-y-3">
-                    {searched.map((o) => (
-                        <div key={o.id} className="p-4 bg-white/5 border border-white/10 rounded-xl">
-                            <div className="flex items-start justify-between">
-                                <div>
-                                    <div className="text-white font-semibold">#{o.order_number}</div>
-                                    <div className="text-sm text-gray-400">Status: {o.status}</div>
-                                    <div className="text-sm text-gray-400">Total: ${(o.total_amount/100).toFixed(2)}</div>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <label className="flex items-center gap-2 text-gray-400 text-xs">
-                                        <input type="checkbox" checked={selectedIds.includes(o.id)} onChange={(e)=>{
-                                            setSelectedIds((ids)=> e.target.checked ? [...new Set([...ids, o.id])] : ids.filter(x=>x!==o.id))
-                                        }} /> Select
-                                    </label>
-                                    {canUpdateTo(o.status).map((next) => (
-                                        <button key={next} onClick={async ()=>{
-                                            await updateStatus.mutateAsync({ orderId: o.id, data: { status: next as any } })
-                                            setSelectedOrderId(o.id)
-                                            refetch()
-                                        }} className="px-3 py-1.5 bg-white/5 hover:bg-white/10 rounded text-white text-sm">{next.replace('_',' ')}</button>
-                                    ))}
-                                    <button onClick={()=>setSelectedOrderId(o.id)} className="px-3 py-1.5 bg-white/5 hover:bg-white/10 rounded text-white text-sm">History</button>
-                                    <button onClick={async ()=>{ await notifyRiders.mutateAsync({ orderId: o.id }); }} className="px-3 py-1.5 bg-white/5 hover:bg-white/10 rounded text-white text-sm">Notify Riders</button>
-                                </div>
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    {(['pending','preparing','ready'] as const).map((col) => (
+                        <div key={col} className="bg-[#121212] border border-white/10 rounded-2xl overflow-hidden">
+                            <div className="px-4 py-3 border-b border-white/10 flex items-center justify-between">
+                                <span className="text-sm font-semibold text-white">{col.replace('_',' ')}</span>
+                                <span className="text-xs px-2 py-1 rounded bg-white/10 text-gray-300">{searched.filter(o=>o.status===col).length}</span>
                             </div>
-                            {selectedOrderId===o.id && (
-                                <div className="mt-3 p-3 bg-white/5 rounded">
-                                    <div className="text-sm text-gray-300 mb-2">Status History</div>
-                                    {!history?.length ? (
-                                        <div className="text-xs text-gray-500">No history</div>
-                                    ) : (
-                                        <ul className="text-xs text-gray-400 space-y-1">
-                                            {history.map((h)=> (
-                                                <li key={h.id}>• {h.status} at {new Date(h.created_at).toLocaleString()}</li>
-                                            ))}
-                                        </ul>
-                                    )}
-                                    {orderDetail?.items?.length ? (
-                                        <div className="mt-3">
-                                            <div className="text-sm text-gray-300 mb-2">Items</div>
-                                            <ul className="text-xs text-gray-400 space-y-1">
-                                                {orderDetail.items.map((di)=> (
-                                                    <li key={di.item.id}>
-                                                        {di.item.quantity}× {di.item.menu_item_id}
-                                                        {di.options?.length ? (
-                                                            <span className="ml-2 text-gray-500">[options: {di.options.length}]</span>
-                                                        ) : null}
-                                                    </li>
-                                                ))}
-                                            </ul>
-                                            {orderDetail.order.special_instructions && (
-                                                <div className="mt-2 text-xs text-gray-400">Notes: {orderDetail.order.special_instructions}</div>
-                                            )}
+                            <div className="p-3 space-y-3">
+                                {searched.filter(o=>o.status===col).map((o)=> (
+                                    <div key={o.id} className="group p-4 bg-white/5 border border-white/10 rounded-xl hover:border-white/20 transition-colors">
+                                        <div className="flex items-start justify-between">
+                                            <div>
+                                                <div className="text-white font-semibold">#{o.order_number}</div>
+                                                <div className="text-xs text-gray-500">Total ${(o.total_amount/100).toFixed(2)}</div>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <label className="flex items-center gap-1 text-gray-400 text-xs">
+                                                    <input type="checkbox" checked={selectedIds.includes(o.id)} onChange={(e)=>{
+                                                        setSelectedIds((ids)=> e.target.checked ? [...new Set([...ids, o.id])] : ids.filter(x=>x!==o.id))
+                                                    }} /> Select
+                                                </label>
+                                                <button onClick={()=>setSelectedOrderId(o.id)} className="px-2 py-1 text-xs bg-white/5 hover:bg-white/10 rounded text-white">History</button>
+                                                <button onClick={async ()=>{ await notifyRiders.mutateAsync({ orderId: o.id }); }} className="px-2 py-1 text-xs bg-white/5 hover:bg-white/10 rounded text-white">Notify</button>
+                                            </div>
                                         </div>
-                                    ) : null}
-                                </div>
-                            )}
+                                        <div className="mt-3 flex items-center gap-2 flex-wrap">
+                                            {canUpdateTo(o.status).map((next)=> (
+                                                <button key={next} onClick={async ()=>{
+                                                    await updateStatus.mutateAsync({ orderId: o.id, data: { status: next as any } })
+                                                    setSelectedOrderId(o.id)
+                                                    refetch()
+                                                }} className="px-3 py-1.5 bg-orange-500/20 hover:bg-orange-500/30 text-orange-300 rounded text-xs">
+                                                    {next.replace('_',' ')}
+                                                </button>
+                                            ))}
+                                        </div>
+                                        {selectedOrderId===o.id && (
+                                            <div className="mt-3 p-3 bg-white/5 rounded">
+                                                <div className="text-sm text-gray-300 mb-2">Status History</div>
+                                                {!history?.length ? (
+                                                    <div className="text-xs text-gray-500">No history</div>
+                                                ) : (
+                                                    <ul className="text-xs text-gray-400 space-y-1">
+                                                        {history.map((h)=> (
+                                                            <li key={h.id}>• {h.status} at {new Date(h.created_at).toLocaleString()}</li>
+                                                        ))}
+                                                    </ul>
+                                                )}
+                                                {orderDetail?.items?.length ? (
+                                                    <div className="mt-3">
+                                                        <div className="text-sm text-gray-300 mb-2">Items</div>
+                                                        <ul className="text-xs text-gray-400 space-y-1">
+                                                            {orderDetail.items.map((di)=> (
+                                                                <li key={di.item.id}>
+                                                                    {di.item.quantity}× {di.item.menu_item_id}
+                                                                    {di.options?.length ? (
+                                                                        <span className="ml-2 text-gray-500">[options: {di.options.length}]</span>
+                                                                    ) : null}
+                                                                </li>
+                                                            ))}
+                                                        </ul>
+                                                        {orderDetail.order.special_instructions && (
+                                                            <div className="mt-2 text-xs text-gray-400">Notes: {orderDetail.order.special_instructions}</div>
+                                                        )}
+                                                    </div>
+                                                ) : null}
+                                            </div>
+                                        )}
+                                    </div>
+                                ))}
+                                {!searched.filter(o=>o.status===col).length && (
+                                    <div className="p-6 text-center text-gray-500 bg-white/5 rounded-lg">No orders</div>
+                                )}
+                            </div>
                         </div>
                     ))}
+
+                    <div className="bg-[#121212] border border-white/10 rounded-2xl overflow-hidden">
+                        <div className="px-4 py-3 border-b border-white/10 flex items-center justify-between">
+                            <span className="text-sm font-semibold text-white">Delivery</span>
+                            <span className="text-xs px-2 py-1 rounded bg-white/10 text-gray-300">{searched.filter(o=>['picked_up','out_for_delivery'].includes(o.status)).length}</span>
+                        </div>
+                        <div className="p-3 space-y-3">
+                            {searched.filter(o=>['picked_up','out_for_delivery'].includes(o.status)).map((o)=> (
+                                <div key={o.id} className="p-4 bg-white/5 border border-white/10 rounded-xl">
+                                    <div className="flex items-start justify-between">
+                                        <div>
+                                            <div className="text-white font-semibold">#{o.order_number}</div>
+                                            <div className="text-xs text-gray-500">Total ${(o.total_amount/100).toFixed(2)}</div>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <button onClick={()=>setSelectedOrderId(o.id)} className="px-2 py-1 text-xs bg-white/5 hover:bg-white/10 rounded text-white">History</button>
+                                        </div>
+                                    </div>
+                                    <div className="mt-3 flex items-center gap-2 flex-wrap">
+                                        {canUpdateTo(o.status).map((next)=> (
+                                            <button key={next} onClick={async ()=>{
+                                                await updateStatus.mutateAsync({ orderId: o.id, data: { status: next as any } })
+                                                setSelectedOrderId(o.id)
+                                                refetch()
+                                            }} className="px-3 py-1.5 bg-orange-500/20 hover:bg-orange-500/30 text-orange-300 rounded text-xs">
+                                                {next.replace('_',' ')}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            ))}
+                            {!searched.filter(o=>['picked_up','out_for_delivery'].includes(o.status)).length && (
+                                <div className="p-6 text-center text-gray-500 bg-white/5 rounded-lg">No orders</div>
+                            )}
+                        </div>
+                    </div>
+
+                    <div className="bg-[#121212] border border-white/10 rounded-2xl overflow-hidden">
+                        <div className="px-4 py-3 border-b border-white/10 flex items-center justify-between">
+                            <span className="text-sm font-semibold text-white">Completed</span>
+                            <span className="text-xs px-2 py-1 rounded bg-white/10 text-gray-300">{searched.filter(o=>['delivered','cancelled'].includes(o.status)).length}</span>
+                        </div>
+                        <div className="p-3 space-y-3">
+                            {searched.filter(o=>['delivered','cancelled'].includes(o.status)).map((o)=> (
+                                <div key={o.id} className="p-4 bg-white/5 border border-white/10 rounded-xl">
+                                    <div className="flex items-start justify-between">
+                                        <div>
+                                            <div className="text-white font-semibold">#{o.order_number}</div>
+                                            <div className="text-xs text-gray-500">Total ${(o.total_amount/100).toFixed(2)}</div>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <button onClick={()=>setSelectedOrderId(o.id)} className="px-2 py-1 text-xs bg-white/5 hover:bg-white/10 rounded text-white">History</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                            {!searched.filter(o=>['delivered','cancelled'].includes(o.status)).length && (
+                                <div className="p-6 text-center text-gray-500 bg-white/5 rounded-lg">No orders</div>
+                            )}
+                        </div>
+                    </div>
                 </div>
             )}
         </div>
