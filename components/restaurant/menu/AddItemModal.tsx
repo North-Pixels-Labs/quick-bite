@@ -8,6 +8,7 @@ import { useToast } from '@/components/shared/Toast'
 import LoadingSpinner from '@/components/shared/LoadingSpinner'
 import type { MenuCategory } from '@/types/restaurant.types'
 import { assetUrl } from '@/lib/utils'
+import { z } from 'zod'
 
 interface AddItemModalProps {
     restaurantId: string
@@ -33,7 +34,19 @@ export default function AddItemModal({ restaurantId, categories, onClose }: AddI
     const [imageFile, setImageFile] = useState<File | null>(null)
     const [imagePreview, setImagePreview] = useState<string | null>(null)
     const [serverError, setServerError] = useState<string | null>(null)
+    const [originalImage, setOriginalImage] = useState<File | null>(null)
+    const [cropX, setCropX] = useState(50)
+    const [cropY, setCropY] = useState(50)
     const [options, setOptions] = useState<Array<{ id: string; name: string; type: 'single_select' | 'multi_select'; is_required: boolean; sort_order: number; values: Array<{ id: string; name: string; price_modifier: string; is_default: boolean; sort_order: number }> }>>([])
+
+    const [errors, setErrors] = useState<Record<string, string | null>>({})
+
+    const recropAndPreviewLocal = (file: File, x: number, y: number) => {
+        cropToSquareWithOffset(file, x, y).then(({ file: cropped, dataUrl }) => {
+            setImageFile(cropped)
+            setImagePreview(dataUrl)
+        })
+    }
 
     const { showToast } = useToast()
     const createItem = useCreateItem()
@@ -43,15 +56,40 @@ export default function AddItemModal({ restaurantId, categories, onClose }: AddI
     const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0]
         if (file) {
-            cropToSquare(file).then((cropped) => {
-                setImageFile(cropped)
-                const reader = new FileReader()
-                reader.onloadend = () => setImagePreview(reader.result as string)
-                reader.readAsDataURL(cropped)
-            }).catch(() => {
-                setImageFile(file)
-            })
+            setOriginalImage(file)
+            recropAndPreviewLocal(file, cropX, cropY)
         }
+    }
+
+    const itemSchema = z.object({
+        name: z.string().min(1, 'Item name is required'),
+        category_id: z.string().min(1, 'Category is required'),
+        price: z.string().refine((v) => !!v && parseFloat(v) > 0, 'Price must be positive'),
+        calories: z.string().optional().refine((v) => !v || (!Number.isNaN(parseInt(v)) && parseInt(v) >= 0), 'Calories must be non-negative'),
+        preparation_time: z.string().optional().refine((v) => !v || (!Number.isNaN(parseInt(v)) && parseInt(v) >= 0), 'Preparation time must be non-negative'),
+    })
+
+    const validateField = (key: keyof typeof formData, value: any) => {
+        const data = { ...formData, [key]: value }
+        const parsed = itemSchema.safeParse({
+            name: data.name,
+            category_id: data.category_id,
+            price: data.price,
+            calories: data.calories,
+            preparation_time: data.preparation_time,
+        })
+        const nextErrors: Record<string, string | null> = { ...errors }
+        nextErrors.name = null
+        nextErrors.category_id = null
+        nextErrors.price = null
+        nextErrors.calories = null
+        nextErrors.preparation_time = null
+        if (!parsed.success) {
+            for (const issue of parsed.error.issues) {
+                nextErrors[issue.path[0] as string] = issue.message
+            }
+        }
+        setErrors(nextErrors)
     }
 
     const addIngredient = (value: string) => {
@@ -160,29 +198,41 @@ export default function AddItemModal({ restaurantId, categories, onClose }: AddI
 
                     {/* Form */}
                     <form onSubmit={handleSubmit} className="space-y-6">
-                        {/* Image Upload */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-300 mb-2">Item Image</label>
-                            <div className="flex items-center gap-4">
-                                <div className="w-32 h-32 bg-white/5 rounded-lg flex items-center justify-center overflow-hidden">
-                                    {imagePreview ? (
-                                        <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
-                                    ) : (
-                                        <Upload className="w-12 h-12 text-gray-600" />
-                                    )}
-                                </div>
-                                <div className="flex-1 space-y-2">
-                                    <label className="block">
-                                        <input type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
-                                        <span className="px-4 py-2 bg-white/5 hover:bg-white/10 text-white rounded-lg font-medium transition-colors cursor-pointer inline-flex items-center gap-2">
-                                            <Upload className="w-4 h-4" />
-                                            {imagePreview ? 'Change Image' : 'Upload Image'}
-                                        </span>
-                                    </label>
-                                    {serverError && <p className="text-sm text-red-400">{serverError}</p>}
-                                </div>
+                    {/* Image Upload */}
+                    <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-2">Item Image</label>
+                        <div className="flex items-center gap-4">
+                            <div className="w-32 h-32 bg-white/5 rounded-lg flex items-center justify-center overflow-hidden">
+                                {imagePreview ? (
+                                    <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
+                                ) : (
+                                    <Upload className="w-12 h-12 text-gray-600" />
+                                )}
+                            </div>
+                            <div className="flex-1 space-y-2">
+                                <label className="block">
+                                    <input type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
+                                    <span className="px-4 py-2 bg-white/5 hover:bg-white/10 text-white rounded-lg font-medium transition-colors cursor-pointer inline-flex items-center gap-2">
+                                        <Upload className="w-4 h-4" />
+                                        {imagePreview ? 'Change Image' : 'Upload Image'}
+                                    </span>
+                                </label>
+                                {serverError && <p className="text-sm text-red-400">{serverError}</p>}
+                                {originalImage && (
+                                    <div className="space-y-2">
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-xs text-gray-400">Position X</span>
+                                            <input type="range" min={0} max={100} value={cropX} onChange={(e) => { const v = parseInt(e.target.value); setCropX(v); recropAndPreviewLocal(originalImage, v, cropY) }} />
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-xs text-gray-400">Position Y</span>
+                                            <input type="range" min={0} max={100} value={cropY} onChange={(e) => { const v = parseInt(e.target.value); setCropY(v); recropAndPreviewLocal(originalImage, cropX, v) }} />
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         </div>
+                    </div>
 
                         {/* Basic Info */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -193,11 +243,12 @@ export default function AddItemModal({ restaurantId, categories, onClose }: AddI
                                 <input
                                     type="text"
                                     value={formData.name}
-                                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                    onChange={(e) => { setFormData({ ...formData, name: e.target.value }); validateField('name', e.target.value) }}
                                     placeholder="e.g., Margherita Pizza"
                                     className="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-orange-500/50"
                                     required
                                 />
+                                {errors.name && <p className="text-xs text-red-400 mt-1">{errors.name}</p>}
                             </div>
 
                             <div>
@@ -206,7 +257,7 @@ export default function AddItemModal({ restaurantId, categories, onClose }: AddI
                                 </label>
                                 <select
                                     value={formData.category_id}
-                                    onChange={(e) => setFormData({ ...formData, category_id: e.target.value })}
+                                    onChange={(e) => { setFormData({ ...formData, category_id: e.target.value }); validateField('category_id', e.target.value) }}
                                     className="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-orange-500/50"
                                     required
                                 >
@@ -216,6 +267,7 @@ export default function AddItemModal({ restaurantId, categories, onClose }: AddI
                                         </option>
                                     ))}
                                 </select>
+                                {errors.category_id && <p className="text-xs text-red-400 mt-1">{errors.category_id}</p>}
                             </div>
 
                             <div>
@@ -227,7 +279,7 @@ export default function AddItemModal({ restaurantId, categories, onClose }: AddI
                                     step="0.01"
                                     min="0"
                                     value={formData.price}
-                                    onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                                    onChange={(e) => { setFormData({ ...formData, price: e.target.value }); validateField('price', e.target.value) }}
                                     placeholder="9.99"
                                     className="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-orange-500/50"
                                     required
@@ -235,6 +287,7 @@ export default function AddItemModal({ restaurantId, categories, onClose }: AddI
                                 {formData.price && (
                                     <p className="text-xs text-gray-500 mt-1">Formatted: ${Number(formData.price).toFixed(2)}</p>
                                 )}
+                                {errors.price && <p className="text-xs text-red-400 mt-1">{errors.price}</p>}
                             </div>
                         </div>
 
@@ -297,10 +350,11 @@ export default function AddItemModal({ restaurantId, categories, onClose }: AddI
                                     type="number"
                                     min="0"
                                     value={formData.calories}
-                                    onChange={(e) => setFormData({ ...formData, calories: e.target.value })}
+                                    onChange={(e) => { setFormData({ ...formData, calories: e.target.value }); validateField('calories', e.target.value) }}
                                     placeholder="250"
                                     className="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-orange-500/50"
                                 />
+                                {errors.calories && <p className="text-xs text-red-400 mt-1">{errors.calories}</p>}
                             </div>
 
                             <div>
@@ -311,10 +365,11 @@ export default function AddItemModal({ restaurantId, categories, onClose }: AddI
                                     type="number"
                                     min="0"
                                     value={formData.preparation_time}
-                                    onChange={(e) => setFormData({ ...formData, preparation_time: e.target.value })}
+                                    onChange={(e) => { setFormData({ ...formData, preparation_time: e.target.value }); validateField('preparation_time', e.target.value) }}
                                     placeholder="15"
                                     className="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-orange-500/50"
                                 />
+                                {errors.preparation_time && <p className="text-xs text-red-400 mt-1">{errors.preparation_time}</p>}
                             </div>
 
                             <div>
@@ -402,7 +457,7 @@ export default function AddItemModal({ restaurantId, categories, onClose }: AddI
                             </button>
                             <button
                                 type="submit"
-                                disabled={createItem.isPending}
+                                disabled={createItem.isPending || Object.values(errors).some((e) => !!e) || !formData.name || !formData.category_id || !formData.price}
                                 className="flex-1 px-4 py-2.5 bg-orange-500 hover:bg-orange-600 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                             >
                                 {createItem.isPending ? (
@@ -458,6 +513,30 @@ async function cropToSquare(file: File): Promise<File> {
         canvas.toBlob((blob) => {
             if (!blob) return reject(new Error('crop failed'))
             resolve(new File([blob], file.name.replace(/\.[^.]+$/, '') + '-cropped.jpg', { type: 'image/jpeg' }))
+        }, 'image/jpeg', 0.9)
+    })
+}
+
+async function cropToSquareWithOffset(file: File, offsetXPercent: number, offsetYPercent: number): Promise<{ file: File; dataUrl: string }> {
+    const img = document.createElement('img')
+    img.src = URL.createObjectURL(file)
+    await new Promise((res) => { img.onload = res })
+    const size = Math.min(img.naturalWidth, img.naturalHeight)
+    const maxX = img.naturalWidth - size
+    const maxY = img.naturalHeight - size
+    const sx = Math.round((offsetXPercent / 100) * maxX)
+    const sy = Math.round((offsetYPercent / 100) * maxY)
+    const canvas = document.createElement('canvas')
+    canvas.width = 800
+    canvas.height = 800
+    const ctx = canvas.getContext('2d')!
+    ctx.drawImage(img, sx, sy, size, size, 0, 0, 800, 800)
+    return new Promise((resolve, reject) => {
+        canvas.toBlob((blob) => {
+            if (!blob) return reject(new Error('crop failed'))
+            const f = new File([blob], file.name.replace(/\.[^.]+$/, '') + '-cropped.jpg', { type: 'image/jpeg' })
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.9)
+            resolve({ file: f, dataUrl })
         }, 'image/jpeg', 0.9)
     })
 }

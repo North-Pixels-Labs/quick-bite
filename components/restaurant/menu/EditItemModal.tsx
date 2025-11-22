@@ -32,23 +32,27 @@ export default function EditItemModal({ item, restaurantId, categories, onClose 
     const [imageFile, setImageFile] = useState<File | null>(null)
     const [imagePreview, setImagePreview] = useState<string | null>(item.image_url ? assetUrl(item.image_url) : null)
     const [serverError, setServerError] = useState<string | null>(null)
+    const [originalImage, setOriginalImage] = useState<File | null>(null)
+    const [cropX, setCropX] = useState(50)
+    const [cropY, setCropY] = useState(50)
 
     const { showToast } = useToast()
     const updateItem = useUpdateItem()
     const uploadImage = useUploadItemImage()
     const deleteImage = useDeleteItemImage()
 
+    const recropAndPreviewLocal = (file: File, x: number, y: number) => {
+        cropToSquareWithOffset(file, x, y).then(({ file: cropped, dataUrl }) => {
+            setImageFile(cropped)
+            setImagePreview(dataUrl)
+        })
+    }
+
     const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0]
         if (file) {
-            cropToSquare(file).then((cropped) => {
-                setImageFile(cropped)
-                const reader = new FileReader()
-                reader.onloadend = () => setImagePreview(reader.result as string)
-                reader.readAsDataURL(cropped)
-            }).catch(() => {
-                setImageFile(file)
-            })
+            setOriginalImage(file)
+            recropAndPreviewLocal(file, cropX, cropY)
         }
     }
 
@@ -168,6 +172,18 @@ export default function EditItemModal({ item, restaurantId, categories, onClose 
                                 </label>
                                 {serverError && (
                                     <p className="text-sm text-red-400">{serverError}</p>
+                                )}
+                                {originalImage && (
+                                    <div className="space-y-2">
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-xs text-gray-400">Position X</span>
+                                            <input type="range" min={0} max={100} value={cropX} onChange={(e) => { const v = parseInt(e.target.value); setCropX(v); recropAndPreviewLocal(originalImage, v, cropY) }} />
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-xs text-gray-400">Position Y</span>
+                                            <input type="range" min={0} max={100} value={cropY} onChange={(e) => { const v = parseInt(e.target.value); setCropY(v); recropAndPreviewLocal(originalImage, cropX, v) }} />
+                                        </div>
+                                    </div>
                                 )}
                                 {imagePreview && (
                                     <button
@@ -374,6 +390,30 @@ async function cropToSquare(file: File): Promise<File> {
         canvas.toBlob((blob) => {
             if (!blob) return reject(new Error('crop failed'))
             resolve(new File([blob], file.name.replace(/\.[^.]+$/, '') + '-cropped.jpg', { type: 'image/jpeg' }))
+        }, 'image/jpeg', 0.9)
+    })
+}
+
+async function cropToSquareWithOffset(file: File, offsetXPercent: number, offsetYPercent: number): Promise<{ file: File; dataUrl: string }> {
+    const img = document.createElement('img')
+    img.src = URL.createObjectURL(file)
+    await new Promise((res) => { img.onload = res })
+    const size = Math.min(img.naturalWidth, img.naturalHeight)
+    const maxX = img.naturalWidth - size
+    const maxY = img.naturalHeight - size
+    const sx = Math.round((offsetXPercent / 100) * maxX)
+    const sy = Math.round((offsetYPercent / 100) * maxY)
+    const canvas = document.createElement('canvas')
+    canvas.width = 800
+    canvas.height = 800
+    const ctx = canvas.getContext('2d')!
+    ctx.drawImage(img, sx, sy, size, size, 0, 0, 800, 800)
+    return new Promise((resolve, reject) => {
+        canvas.toBlob((blob) => {
+            if (!blob) return reject(new Error('crop failed'))
+            const f = new File([blob], file.name.replace(/\.[^.]+$/, '') + '-cropped.jpg', { type: 'image/jpeg' })
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.9)
+            resolve({ file: f, dataUrl })
         }, 'image/jpeg', 0.9)
     })
 }
