@@ -54,6 +54,45 @@ export function useCreateCategory() {
     })
 }
 
+// Update category mutation
+export function useUpdateCategory() {
+    const queryClient = useQueryClient()
+
+    return useMutation({
+        mutationFn: ({
+            restaurantId,
+            categoryId,
+            data
+        }: {
+            restaurantId: string
+            categoryId: string
+            data: Partial<CreateCategoryRequest>
+        }) => menuCategoryApi.update(restaurantId, categoryId, data),
+        onSuccess: (_, variables) => {
+            queryClient.invalidateQueries({ queryKey: menuKeys.categories(variables.restaurantId) })
+        },
+    })
+}
+
+// Delete category mutation
+export function useDeleteCategory() {
+    const queryClient = useQueryClient()
+
+    return useMutation({
+        mutationFn: ({
+            restaurantId,
+            categoryId
+        }: {
+            restaurantId: string
+            categoryId: string
+        }) => menuCategoryApi.delete(restaurantId, categoryId),
+        onSuccess: (_, variables) => {
+            queryClient.invalidateQueries({ queryKey: menuKeys.categories(variables.restaurantId) })
+            queryClient.invalidateQueries({ queryKey: menuKeys.items(variables.restaurantId) })
+        },
+    })
+}
+
 // Create item mutation
 export function useCreateItem() {
     const queryClient = useQueryClient()
@@ -61,6 +100,44 @@ export function useCreateItem() {
     return useMutation({
         mutationFn: ({ restaurantId, data }: { restaurantId: string; data: CreateItemRequest }) =>
             menuItemApi.create(restaurantId, data),
+        onSuccess: (_, variables) => {
+            queryClient.invalidateQueries({ queryKey: menuKeys.items(variables.restaurantId) })
+        },
+    })
+}
+
+// Update item mutation
+export function useUpdateItem() {
+    const queryClient = useQueryClient()
+
+    return useMutation({
+        mutationFn: ({
+            restaurantId,
+            itemId,
+            data
+        }: {
+            restaurantId: string
+            itemId: string
+            data: Partial<CreateItemRequest>
+        }) => menuItemApi.update(restaurantId, itemId, data),
+        onSuccess: (_, variables) => {
+            queryClient.invalidateQueries({ queryKey: menuKeys.items(variables.restaurantId) })
+        },
+    })
+}
+
+// Delete item mutation
+export function useDeleteItem() {
+    const queryClient = useQueryClient()
+
+    return useMutation({
+        mutationFn: ({
+            restaurantId,
+            itemId
+        }: {
+            restaurantId: string
+            itemId: string
+        }) => menuItemApi.delete(restaurantId, itemId),
         onSuccess: (_, variables) => {
             queryClient.invalidateQueries({ queryKey: menuKeys.items(variables.restaurantId) })
         },
@@ -188,5 +265,49 @@ export function useMenuItemOptionValues(restaurantId: string, itemId: string, op
             return data.data
         },
         enabled: !!restaurantId && !!itemId && !!optionId,
+    })
+}
+
+// Create option mutation
+export function useCreateOption() {
+    const queryClient = useQueryClient()
+
+    return useMutation({
+        mutationFn: ({
+            restaurantId,
+            itemId,
+            data
+        }: {
+            restaurantId: string
+            itemId: string
+            data: { name: string; type: string; is_required: boolean; sort_order: number }
+        }) => menuOptionApi.createOption(restaurantId, itemId, data),
+        onSuccess: (_, variables) => {
+            queryClient.invalidateQueries({ queryKey: menuKeys.options(variables.restaurantId, variables.itemId) })
+        },
+    })
+}
+
+// Create option value mutation
+export function useCreateOptionValue() {
+    const queryClient = useQueryClient()
+
+    return useMutation({
+        mutationFn: ({
+            restaurantId,
+            itemId,
+            optionId,
+            data
+        }: {
+            restaurantId: string
+            itemId: string
+            optionId: string
+            data: { name: string; price_modifier: number; is_default: boolean; sort_order: number }
+        }) => menuOptionApi.createValue(restaurantId, itemId, optionId, data),
+        onSuccess: (_, variables) => {
+            queryClient.invalidateQueries({
+                queryKey: menuKeys.optionValues(variables.restaurantId, variables.itemId, variables.optionId)
+            })
+        },
     })
 }

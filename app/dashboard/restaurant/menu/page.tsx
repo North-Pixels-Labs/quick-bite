@@ -17,7 +17,6 @@ export default function MenuPage() {
     const [searchQuery, setSearchQuery] = useState('')
     const [showAddCategory, setShowAddCategory] = useState(false)
     const [showAddItem, setShowAddItem] = useState(false)
-    const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
 
     // Fetch restaurants and get the first one (assuming single restaurant for now)
     const { data: restaurants, isLoading: loadingRestaurants } = useRestaurants()
@@ -103,15 +102,13 @@ export default function MenuPage() {
                 <div className="flex items-center gap-2 bg-white/5 rounded-lg p-1">
                     <button
                         onClick={() => setViewMode('grid')}
-                        className={`p-2 rounded-md transition-colors ${viewMode === 'grid' ? 'bg-orange-500 text-white' : 'text-gray-400 hover:text-white'
-                            }`}
+                        className={`p-2 rounded-md transition-colors ${viewMode === 'grid' ? 'bg-orange-500 text-white' : 'text-gray-400 hover:text-white'}`}
                     >
                         <Grid className="w-4 h-4" />
                     </button>
                     <button
                         onClick={() => setViewMode('list')}
-                        className={`p-2 rounded-md transition-colors ${viewMode === 'list' ? 'bg-orange-500 text-white' : 'text-gray-400 hover:text-white'
-                            }`}
+                        className={`p-2 rounded-md transition-colors ${viewMode === 'list' ? 'bg-orange-500 text-white' : 'text-gray-400 hover:text-white'}`}
                     >
                         <List className="w-4 h-4" />
                     </button>
@@ -153,6 +150,7 @@ export default function MenuPage() {
                                                     item={item}
                                                     restaurantId={restaurantId}
                                                     viewMode={viewMode}
+                                                    categories={categories}
                                                 />
                                             ))}
                                     </div>
