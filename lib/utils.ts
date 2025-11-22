@@ -13,3 +13,9 @@ export function assetUrl(path?: string) {
   const origin = API_URL.replace(/\/api\/v1$/, '')
   return `${origin}${path}`
 }
+
+export function wsUrl(path: string) {
+  const origin = API_URL.replace(/\/api\/v1$/, '')
+  const wsOrigin = origin.replace(/^http/, 'ws')
+  return `${wsOrigin}${path}`
+}

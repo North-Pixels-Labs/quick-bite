@@ -34,6 +34,9 @@ export default function OrdersPage() {
     }
 
     const filtered = useMemo(() => orders || [], [orders])
+    const searched = useMemo(() => filtered.filter(o => (
+        o.order_number.toLowerCase().includes(search.toLowerCase())
+    )), [filtered, search])
 
     return (
         <div className="space-y-6">
@@ -48,6 +51,7 @@ export default function OrdersPage() {
                             <option key={r.id} value={r.id} className="bg-[#1A1A1A]">{r.name}</option>
                         ))}
                     </select>
+                    <input value={search} onChange={(e)=> setSearch(e.target.value)} placeholder="Search by order #" className="px-3 py-2 bg-white/5 border border-white/10 rounded text-white" />
                     <div className="flex items-center gap-2 bg-white/5 rounded-lg p-1">
                     {(['all','pending','confirmed','preparing','ready','picked_up','out_for_delivery','delivered','cancelled'] as const).map((s) => (
                         <button key={s} onClick={() => { setFilter(s) }} className={`px-3 py-1.5 rounded ${filter===s?'bg-orange-500 text-white':'text-gray-400 hover:text-white'}`}>{s.replace('_',' ')}</button>
@@ -68,7 +72,7 @@ export default function OrdersPage() {
                 </div>
             ) : (
                 <div className="space-y-3">
-                    {filtered.map((o) => (
+                    {searched.map((o) => (
                         <div key={o.id} className="p-4 bg-white/5 border border-white/10 rounded-xl">
                             <div className="flex items-start justify-between">
                                 <div>
@@ -77,6 +81,11 @@ export default function OrdersPage() {
                                     <div className="text-sm text-gray-400">Total: ${(o.total_amount/100).toFixed(2)}</div>
                                 </div>
                                 <div className="flex items-center gap-2">
+                                    <label className="flex items-center gap-2 text-gray-400 text-xs">
+                                        <input type="checkbox" checked={selectedIds.includes(o.id)} onChange={(e)=>{
+                                            setSelectedIds((ids)=> e.target.checked ? [...new Set([...ids, o.id])] : ids.filter(x=>x!==o.id))
+                                        }} /> Select
+                                    </label>
                                     {canUpdateTo(o.status).map((next) => (
                                         <button key={next} onClick={async ()=>{
                                             await updateStatus.mutateAsync({ orderId: o.id, data: { status: next as any } })
