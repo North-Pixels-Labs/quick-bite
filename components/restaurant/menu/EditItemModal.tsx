@@ -2,43 +2,41 @@
 
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, Upload, Plus, Trash2 } from 'lucide-react'
-import { useCreateItem, useCreateOption, useCreateOptionValue } from '@/hooks/useMenuQueries'
+import { X, Upload, Image as ImageIcon } from 'lucide-react'
+import { assetUrl } from '@/lib/utils'
+import { useUpdateItem, useUploadItemImage, useDeleteItemImage } from '@/hooks/useMenuQueries'
 import { useToast } from '@/components/shared/Toast'
 import LoadingSpinner from '@/components/shared/LoadingSpinner'
-import type { MenuCategory } from '@/types/restaurant.types'
-import { assetUrl } from '@/lib/utils'
+import type { MenuItem, MenuCategory } from '@/types/restaurant.types'
 
-interface AddItemModalProps {
+interface EditItemModalProps {
+    item: MenuItem
     restaurantId: string
     categories: MenuCategory[]
     onClose: () => void
 }
 
-export default function AddItemModal({ restaurantId, categories, onClose }: AddItemModalProps) {
+export default function EditItemModal({ item, restaurantId, categories, onClose }: EditItemModalProps) {
     const [formData, setFormData] = useState({
-        category_id: categories[0]?.id || '',
-        name: '',
-        description: '',
-        price: '',
-        is_vegetarian: false,
-        is_vegan: false,
-        is_gluten_free: false,
-        calories: '',
-        preparation_time: '',
-        ingredients: [] as string[],
-        allergens: [] as string[],
-        sort_order: 0,
+        category_id: item.category_id,
+        name: item.name,
+        description: item.description || '',
+        price: (item.price / 100).toString(),
+        is_vegetarian: item.is_vegetarian,
+        is_vegan: item.is_vegan,
+        is_gluten_free: item.is_gluten_free,
+        calories: item.calories?.toString() || '',
+        preparation_time: item.preparation_time?.toString() || '',
+        sort_order: item.sort_order,
     })
     const [imageFile, setImageFile] = useState<File | null>(null)
-    const [imagePreview, setImagePreview] = useState<string | null>(null)
+    const [imagePreview, setImagePreview] = useState<string | null>(item.image_url ? assetUrl(item.image_url) : null)
     const [serverError, setServerError] = useState<string | null>(null)
-    const [options, setOptions] = useState<Array<{ id: string; name: string; type: 'single_select' | 'multi_select'; is_required: boolean; sort_order: number; values: Array<{ id: string; name: string; price_modifier: string; is_default: boolean; sort_order: number }> }>>([])
 
     const { showToast } = useToast()
-    const createItem = useCreateItem()
-    const createOption = useCreateOption()
-    const createValue = useCreateOptionValue()
+    const updateItem = useUpdateItem()
+    const uploadImage = useUploadItemImage()
+    const deleteImage = useDeleteItemImage()
 
     const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0]
@@ -54,27 +52,18 @@ export default function AddItemModal({ restaurantId, categories, onClose }: AddI
         }
     }
 
-    const addIngredient = (value: string) => {
-        const v = value.trim()
-        if (!v) return
-        setFormData((f) => ({ ...f, ingredients: Array.from(new Set([...(f.ingredients || []), v])) }))
-    }
-    const removeIngredient = (v: string) => setFormData((f) => ({ ...f, ingredients: (f.ingredients || []).filter((x) => x !== v) }))
-    const addAllergen = (value: string) => {
-        const v = value.trim()
-        if (!v) return
-        setFormData((f) => ({ ...f, allergens: Array.from(new Set([...(f.allergens || []), v])) }))
-    }
-    const removeAllergen = (v: string) => setFormData((f) => ({ ...f, allergens: (f.allergens || []).filter((x) => x !== v) }))
+    const handleDeleteImage = async () => {
+        if (!item.image_url) return
 
-    const addOption = () => {
-        setOptions((opts) => [...opts, { id: crypto.randomUUID(), name: '', type: 'single_select', is_required: false, sort_order: 0, values: [] }])
+        try {
+            await deleteImage.mutateAsync({ restaurantId, itemId: item.id })
+            setImagePreview(null)
+            setImageFile(null)
+            showToast('success', 'Image deleted successfully')
+        } catch (error) {
+            showToast('error', 'Failed to delete image')
+        }
     }
-    const removeOption = (id: string) => setOptions((opts) => opts.filter((o) => o.id !== id))
-    const addValue = (optionId: string) => {
-        setOptions((opts) => opts.map((o) => o.id === optionId ? { ...o, values: [...o.values, { id: crypto.randomUUID(), name: '', price_modifier: '', is_default: false, sort_order: 0 }] } : o))
-    }
-    const removeValue = (optionId: string, valueId: string) => setOptions((opts) => opts.map((o) => o.id === optionId ? { ...o, values: o.values.filter((v) => v.id !== valueId) } : o))
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -89,54 +78,45 @@ export default function AddItemModal({ restaurantId, categories, onClose }: AddI
             return
         }
 
-        if (!formData.category_id) {
-            showToast('error', 'Please select a category')
-            return
-        }
-
         try {
-            const res = await createItem.mutateAsync({
+            // Update item details
+            await updateItem.mutateAsync({
                 restaurantId,
+                itemId: item.id,
                 data: {
                     category_id: formData.category_id,
                     name: formData.name.trim(),
                     description: formData.description.trim() || undefined,
-                    price: Math.round(parseFloat(formData.price) * 100), // Convert to cents
+                    price: Math.round(parseFloat(formData.price) * 100),
                     is_vegetarian: formData.is_vegetarian,
                     is_vegan: formData.is_vegan,
                     is_gluten_free: formData.is_gluten_free,
                     calories: formData.calories ? parseInt(formData.calories) : undefined,
                     preparation_time: formData.preparation_time ? parseInt(formData.preparation_time) : undefined,
-                    ingredients: (formData.ingredients && formData.ingredients.length) ? JSON.stringify(formData.ingredients) : undefined,
-                    allergens: (formData.allergens && formData.allergens.length) ? JSON.stringify(formData.allergens) : undefined,
                     sort_order: formData.sort_order,
                 },
             })
-            const itemId = res.data.data.id
-            // Upload image if present
+
+            // Upload new image if selected
             if (imageFile) {
                 setServerError(null)
                 try {
-                    const fd = new FormData(); fd.append('image', imageFile)
-                    await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/v1'}/restaurants/${restaurantId}/menu/items/${itemId}/image`, { method: 'POST', headers: { Authorization: `Bearer ${localStorage.getItem('access_token') || ''}` }, body: fd })
-                } catch (err) {
-                    setServerError('Image upload failed')
+                    await uploadImage.mutateAsync({ restaurantId, itemId: item.id, file: imageFile })
+                } catch (err: any) {
+                    const msg = err?.response?.data?.message || 'Image upload failed'
+                    setServerError(msg)
+                    return
                 }
             }
-            // Create options & values
-            for (const opt of options) {
-                const createdOpt = await createOption.mutateAsync({ restaurantId, itemId, data: { name: opt.name.trim(), type: opt.type, is_required: opt.is_required, sort_order: opt.sort_order } })
-                const optionId = createdOpt.data.data.id
-                for (const val of opt.values) {
-                    await createValue.mutateAsync({ restaurantId, itemId, optionId, data: { name: val.name.trim(), price_modifier: val.price_modifier ? Math.round(parseFloat(val.price_modifier) * 100) : 0, is_default: val.is_default, sort_order: val.sort_order } })
-                }
-            }
-            showToast('success', 'Menu item created successfully')
+
+            showToast('success', 'Menu item updated successfully')
             onClose()
         } catch (error) {
-            showToast('error', 'Failed to create menu item')
+            showToast('error', 'Failed to update menu item')
         }
     }
+
+    const isLoading = updateItem.isPending || uploadImage.isPending || deleteImage.isPending
 
     return (
         <AnimatePresence>
@@ -149,7 +129,7 @@ export default function AddItemModal({ restaurantId, categories, onClose }: AddI
                 >
                     {/* Header */}
                     <div className="flex items-center justify-between mb-6">
-                        <h2 className="text-xl font-bold text-white">Add Menu Item</h2>
+                        <h2 className="text-xl font-bold text-white">Edit Menu Item</h2>
                         <button
                             onClick={onClose}
                             className="p-2 hover:bg-white/5 rounded-lg transition-colors"
@@ -160,29 +140,48 @@ export default function AddItemModal({ restaurantId, categories, onClose }: AddI
 
                     {/* Form */}
                     <form onSubmit={handleSubmit} className="space-y-6">
-                        {/* Image Upload */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-300 mb-2">Item Image</label>
-                            <div className="flex items-center gap-4">
-                                <div className="w-32 h-32 bg-white/5 rounded-lg flex items-center justify-center overflow-hidden">
-                                    {imagePreview ? (
-                                        <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
-                                    ) : (
-                                        <Upload className="w-12 h-12 text-gray-600" />
-                                    )}
-                                </div>
-                                <div className="flex-1 space-y-2">
-                                    <label className="block">
-                                        <input type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
-                                        <span className="px-4 py-2 bg-white/5 hover:bg-white/10 text-white rounded-lg font-medium transition-colors cursor-pointer inline-flex items-center gap-2">
-                                            <Upload className="w-4 h-4" />
-                                            {imagePreview ? 'Change Image' : 'Upload Image'}
-                                        </span>
-                                    </label>
-                                    {serverError && <p className="text-sm text-red-400">{serverError}</p>}
-                                </div>
+                    {/* Image Upload */}
+                    <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                            Item Image
+                        </label>
+                        <div className="flex items-center gap-4">
+                            <div className="w-32 h-32 bg-white/5 rounded-lg flex items-center justify-center overflow-hidden">
+                                {imagePreview ? (
+                                    <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
+                                ) : (
+                                    <ImageIcon className="w-12 h-12 text-gray-600" />
+                                )}
+                            </div>
+                            <div className="flex-1 space-y-2">
+                                <label className="block">
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={handleImageChange}
+                                        className="hidden"
+                                    />
+                                    <span className="px-4 py-2 bg-white/5 hover:bg-white/10 text-white rounded-lg font-medium transition-colors cursor-pointer inline-flex items-center gap-2">
+                                        <Upload className="w-4 h-4" />
+                                        {imagePreview ? 'Change Image' : 'Upload Image'}
+                                    </span>
+                                </label>
+                                {serverError && (
+                                    <p className="text-sm text-red-400">{serverError}</p>
+                                )}
+                                {imagePreview && (
+                                    <button
+                                        type="button"
+                                        onClick={handleDeleteImage}
+                                        disabled={deleteImage.isPending}
+                                        className="block px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-lg font-medium transition-colors disabled:opacity-50"
+                                    >
+                                        {deleteImage.isPending ? 'Deleting...' : 'Delete Image'}
+                                    </button>
+                                )}
                             </div>
                         </div>
+                    </div>
 
                         {/* Basic Info */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -232,9 +231,6 @@ export default function AddItemModal({ restaurantId, categories, onClose }: AddI
                                     className="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-orange-500/50"
                                     required
                                 />
-                                {formData.price && (
-                                    <p className="text-xs text-gray-500 mt-1">Formatted: ${Number(formData.price).toFixed(2)}</p>
-                                )}
                             </div>
                         </div>
 
@@ -331,66 +327,6 @@ export default function AddItemModal({ restaurantId, categories, onClose }: AddI
                             </div>
                         </div>
 
-                        {/* Ingredients */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-300 mb-2">Ingredients</label>
-                            <ChipEditor values={formData.ingredients} onAdd={addIngredient} onRemove={removeIngredient} placeholder="Add ingredient" />
-                        </div>
-
-                        {/* Allergens */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-300 mb-2">Allergens</label>
-                            <ChipEditor values={formData.allergens} onAdd={addAllergen} onRemove={removeAllergen} placeholder="Add allergen" />
-                        </div>
-
-                        {/* Options Builder */}
-                        <div className="space-y-3">
-                            <div className="flex items-center justify-between">
-                                <h3 className="text-sm font-semibold text-white">Customization Options</h3>
-                                <button type="button" onClick={addOption} className="px-3 py-1.5 bg-white/5 hover:bg-white/10 rounded text-white text-sm inline-flex items-center gap-2">
-                                    <Plus className="w-4 h-4" /> Add Option
-                                </button>
-                            </div>
-                            {options.map((opt, idx) => (
-                                <div key={opt.id} className="p-3 bg-white/5 border border-white/10 rounded-lg space-y-3">
-                                    <div className="flex items-center gap-2">
-                                        <input value={opt.name} onChange={(e) => setOptions((arr) => arr.map((o) => o.id === opt.id ? { ...o, name: e.target.value } : o))} placeholder="Option name (e.g., Size)" className="flex-1 px-3 py-2 bg-white/5 border border-white/10 rounded text-white" />
-                                        <select value={opt.type} onChange={(e) => setOptions((arr) => arr.map((o) => o.id === opt.id ? { ...o, type: e.target.value as 'single_select' | 'multi_select' } : o))} className="px-3 py-2 bg-white/5 border border-white/10 rounded text-white">
-                                            <option value="single_select" className="bg-[#1A1A1A]">Single Select</option>
-                                            <option value="multi_select" className="bg-[#1A1A1A]">Multi Select</option>
-                                        </select>
-                                        <label className="flex items-center gap-2">
-                                            <input type="checkbox" checked={opt.is_required} onChange={(e) => setOptions((arr) => arr.map((o) => o.id === opt.id ? { ...o, is_required: e.target.checked } : o))} />
-                                            <span className="text-sm text-gray-300">Required</span>
-                                        </label>
-                                        <input type="number" value={opt.sort_order} onChange={(e) => setOptions((arr) => arr.map((o) => o.id === opt.id ? { ...o, sort_order: parseInt(e.target.value) || 0 } : o))} className="w-24 px-3 py-2 bg-white/5 border border-white/10 rounded text-white" placeholder="Sort" />
-                                        <button type="button" onClick={() => removeOption(opt.id)} className="px-2 py-2 bg-red-500/10 hover:bg-red-500/20 rounded text-red-400">
-                                            <Trash2 className="w-4 h-4" />
-                                        </button>
-                                    </div>
-                                    <div className="space-y-2">
-                                        {opt.values.map((val) => (
-                                            <div key={val.id} className="flex items-center gap-2">
-                                                <input value={val.name} onChange={(e) => setOptions((arr) => arr.map((o) => o.id === opt.id ? { ...o, values: o.values.map((v) => v.id === val.id ? { ...v, name: e.target.value } : v) } : o))} placeholder="Value name (e.g., Large)" className="flex-1 px-3 py-2 bg-white/5 border border-white/10 rounded text-white" />
-                                                <input type="number" step="0.01" value={val.price_modifier} onChange={(e) => setOptions((arr) => arr.map((o) => o.id === opt.id ? { ...o, values: o.values.map((v) => v.id === val.id ? { ...v, price_modifier: e.target.value } : v) } : o))} placeholder="+$0.50" className="w-32 px-3 py-2 bg-white/5 border border-white/10 rounded text-white" />
-                                                <label className="flex items-center gap-2">
-                                                    <input type="checkbox" checked={val.is_default} onChange={(e) => setOptions((arr) => arr.map((o) => o.id === opt.id ? { ...o, values: o.values.map((v) => v.id === val.id ? { ...v, is_default: e.target.checked } : v) } : o))} />
-                                                    <span className="text-sm text-gray-300">Default</span>
-                                                </label>
-                                                <input type="number" value={val.sort_order} onChange={(e) => setOptions((arr) => arr.map((o) => o.id === opt.id ? { ...o, values: o.values.map((v) => v.id === val.id ? { ...v, sort_order: parseInt(e.target.value) || 0 } : v) } : o))} className="w-24 px-3 py-2 bg-white/5 border border-white/10 rounded text-white" placeholder="Sort" />
-                                                <button type="button" onClick={() => removeValue(opt.id, val.id)} className="px-2 py-2 bg-red-500/10 hover:bg-red-500/20 rounded text-red-400">
-                                                    <Trash2 className="w-4 h-4" />
-                                                </button>
-                                            </div>
-                                        ))}
-                                        <button type="button" onClick={() => addValue(opt.id)} className="px-3 py-1.5 bg-white/5 hover:bg-white/10 rounded text-white text-sm inline-flex items-center gap-2">
-                                            <Plus className="w-4 h-4" /> Add Value
-                                        </button>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-
                         {/* Actions */}
                         <div className="flex items-center gap-3 pt-4">
                             <button
@@ -402,16 +338,16 @@ export default function AddItemModal({ restaurantId, categories, onClose }: AddI
                             </button>
                             <button
                                 type="submit"
-                                disabled={createItem.isPending}
+                                disabled={isLoading}
                                 className="flex-1 px-4 py-2.5 bg-orange-500 hover:bg-orange-600 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                             >
-                                {createItem.isPending ? (
+                                {isLoading ? (
                                     <>
                                         <LoadingSpinner size="sm" />
-                                        Creating...
+                                        Updating...
                                     </>
                                 ) : (
-                                    'Create Item'
+                                    'Update Item'
                                 )}
                             </button>
                         </div>
@@ -419,26 +355,6 @@ export default function AddItemModal({ restaurantId, categories, onClose }: AddI
                 </motion.div>
             </div>
         </AnimatePresence>
-    )
-}
-
-function ChipEditor({ values, onAdd, onRemove, placeholder }: { values: string[]; onAdd: (v: string) => void; onRemove: (v: string) => void; placeholder: string }) {
-    const [input, setInput] = useState('')
-    return (
-        <div className="space-y-2">
-            <div className="flex items-center gap-2">
-                <input value={input} onChange={(e) => setInput(e.target.value)} placeholder={placeholder} className="flex-1 px-3 py-2 bg-white/5 border border-white/10 rounded text-white" />
-                <button type="button" onClick={() => { onAdd(input); setInput('') }} className="px-3 py-2 bg-white/5 hover:bg-white/10 rounded text-white">Add</button>
-            </div>
-            <div className="flex flex-wrap gap-2">
-                {values?.map((v) => (
-                    <span key={v} className="px-2 py-1 bg-white/10 text-white text-xs rounded inline-flex items-center gap-2">
-                        {v}
-                        <button type="button" onClick={() => onRemove(v)} className="text-gray-300 hover:text-white">×</button>
-                    </span>
-                ))}
-            </div>
-        </div>
     )
 }
 

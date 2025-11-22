@@ -235,6 +235,8 @@ export interface CreateItemRequest {
     is_gluten_free: boolean
     calories?: number
     preparation_time?: number
+    ingredients?: string
+    allergens?: string
     sort_order: number
 }
 
