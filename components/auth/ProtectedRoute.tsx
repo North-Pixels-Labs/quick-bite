@@ -6,13 +6,13 @@ import { useAuth } from '@/context/AuthContext'
 
 interface ProtectedRouteProps {
     children: React.ReactNode
-    allowedUserTypes?: ('customer' | 'restaurant_owner' | 'rider')[]
+    allowedUserTypes?: ('customer' | 'restaurant_owner' | 'restaurant_staff' | 'rider')[]
     redirectTo?: string
 }
 
 export function ProtectedRoute({
     children,
-    allowedUserTypes = ['customer', 'restaurant_owner', 'rider'],
+    allowedUserTypes = ['customer', 'restaurant_owner', 'restaurant_staff', 'rider'],
     redirectTo
 }: ProtectedRouteProps) {
     const { isAuthenticated, user, isLoading } = useAuth()
@@ -29,7 +29,9 @@ export function ProtectedRoute({
                 // Redirect to their appropriate dashboard or home
                 const userDashboard = user.user_type === 'customer'
                     ? '/'
-                    : `/dashboard/${user.user_type}`
+                    : user.user_type === 'restaurant_staff'
+                        ? '/dashboard/restaurant'
+                        : `/dashboard/${user.user_type}`
                 router.push(userDashboard)
             }
         }

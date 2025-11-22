@@ -52,3 +52,13 @@ export function useUpdateStaff() {
         },
     })
 }
+
+export function useDeleteStaff() {
+    const queryClient = useQueryClient()
+    return useMutation({
+        mutationFn: ({ restaurantId, staffId }: { restaurantId: string; staffId: string }) => staffApi.delete(restaurantId, staffId),
+        onSuccess: (_, variables) => {
+            queryClient.invalidateQueries({ queryKey: staffKeys.list(variables.restaurantId) })
+        },
+    })
+}

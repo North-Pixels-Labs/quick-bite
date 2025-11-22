@@ -127,6 +127,12 @@ export const staffApi = {
 
     update: (restaurantId: string, staffId: string, data: UpdateStaffRequest) =>
         apiClient.put<ApiResponse<RestaurantStaff>>(`/restaurants/${restaurantId}/staff/${staffId}`, data),
+
+    delete: (restaurantId: string, staffId: string) =>
+        apiClient.delete<ApiResponse<void>>(`/restaurants/${restaurantId}/staff/${staffId}`),
+
+    register: (restaurantId: string, data: { email: string; phone: string; password?: string; first_name: string; last_name: string; role: string; permissions: string[] }) =>
+        apiClient.post<ApiResponse<{ staff: RestaurantStaff }>>(`/restaurants/${restaurantId}/staff/register`, data),
 }
 
 // Delivery Zone APIs
