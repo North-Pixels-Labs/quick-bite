@@ -125,7 +125,7 @@ export default function EditItemModal({ item, restaurantId, categories, onClose 
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.95 }}
-                    className="w-full max-w-2xl bg-[#1A1A1A] border border-white/10 rounded-2xl p-6 my-8"
+                    className="w-full max-w-2xl relative scrollbar-thin h-[80%] overflow-auto  bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl p-6 my-8"
                 >
                     {/* Header */}
                     <div className="flex items-center justify-between mb-6">
@@ -210,7 +210,7 @@ export default function EditItemModal({ item, restaurantId, categories, onClose 
                                     required
                                 >
                                     {categories.map((category) => (
-                                        <option key={category.id} value={category.id} className="bg-[#1A1A1A]">
+                                        <option key={category.id} value={category.id} className="bg-black/40 backdrop-blur-xl">
                                             {category.name}
                                         </option>
                                     ))}

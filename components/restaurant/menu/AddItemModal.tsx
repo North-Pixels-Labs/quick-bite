@@ -145,7 +145,7 @@ export default function AddItemModal({ restaurantId, categories, onClose }: AddI
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.95 }}
-                    className="w-full max-w-2xl bg-[#1A1A1A] border border-white/10 rounded-2xl p-6 my-8"
+                    className="w-full max-w-2xl relative scrollbar-thin h-[80%] overflow-auto bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl p-6 my-8"
                 >
                     {/* Header */}
                     <div className="flex items-center justify-between mb-6">
@@ -211,7 +211,7 @@ export default function AddItemModal({ restaurantId, categories, onClose }: AddI
                                     required
                                 >
                                     {categories.map((category) => (
-                                        <option key={category.id} value={category.id} className="bg-[#1A1A1A]">
+                                        <option key={category.id} value={category.id} className="bg-black/40 backdrop-blur-xl">
                                             {category.name}
                                         </option>
                                     ))}
@@ -356,8 +356,8 @@ export default function AddItemModal({ restaurantId, categories, onClose }: AddI
                                     <div className="flex items-center gap-2">
                                         <input value={opt.name} onChange={(e) => setOptions((arr) => arr.map((o) => o.id === opt.id ? { ...o, name: e.target.value } : o))} placeholder="Option name (e.g., Size)" className="flex-1 px-3 py-2 bg-white/5 border border-white/10 rounded text-white" />
                                         <select value={opt.type} onChange={(e) => setOptions((arr) => arr.map((o) => o.id === opt.id ? { ...o, type: e.target.value as 'single_select' | 'multi_select' } : o))} className="px-3 py-2 bg-white/5 border border-white/10 rounded text-white">
-                                            <option value="single_select" className="bg-[#1A1A1A]">Single Select</option>
-                                            <option value="multi_select" className="bg-[#1A1A1A]">Multi Select</option>
+                                            <option value="single_select" className="bg-black/40 backdrop-blur-xl">Single Select</option>
+                                            <option value="multi_select" className="bg-black/40 backdrop-blur-xl">Multi Select</option>
                                         </select>
                                         <label className="flex items-center gap-2">
                                             <input type="checkbox" checked={opt.is_required} onChange={(e) => setOptions((arr) => arr.map((o) => o.id === opt.id ? { ...o, is_required: e.target.checked } : o))} />

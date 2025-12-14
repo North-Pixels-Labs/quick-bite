@@ -66,7 +66,7 @@ export default function MenuCategoryCard({ category, restaurantId }: MenuCategor
                                 className="fixed inset-0 z-10"
                                 onClick={() => setShowMenu(false)}
                             />
-                            <div className="absolute right-0 top-full mt-2 w-48 bg-[#1A1A1A] border border-white/10 rounded-lg shadow-xl z-20 overflow-hidden">
+                            <div className="absolute right-0 top-full mt-2 w-48 bg-black/40 backdrop-blur-xl border border-white/10 rounded-lg shadow-xl z-20 overflow-hidden">
                                 <button
                                     onClick={() => {
                                         setShowEditModal(true)

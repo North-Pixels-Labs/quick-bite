@@ -134,10 +134,10 @@ export default function MenuItemCard({ item, restaurantId, viewMode, categories 
                             {showMenu && (
                                 <>
                                     <div
-                                        className="fixed inset-0 z-10"
+                                        className="absolute z-50 inset-0 "
                                         onClick={() => setShowMenu(false)}
                                     />
-                                    <div className="absolute right-0 top-full mt-2 w-48 bg-[#1A1A1A] border border-white/10 rounded-lg shadow-xl z-20 overflow-hidden">
+                                    <div className="absolute right-0 top-full mt-2 w-48 bg-black/40 backdrop-blur-xl border border-white/10 rounded-lg shadow-xl z-20 overflow-hidden">
                                         <button
                                             onClick={() => {
                                                 setShowDetailModal(true)
@@ -277,7 +277,7 @@ export default function MenuItemCard({ item, restaurantId, viewMode, categories 
                                         className="fixed inset-0 z-10"
                                         onClick={() => setShowMenu(false)}
                                     />
-                                    <div className="absolute right-0 top-full mt-2 w-48 bg-[#1A1A1A] border border-white/10 rounded-lg shadow-xl z-20 overflow-hidden">
+                                    <div className="absolute right-0 top-full mt-2 w-48 bg-black/40 backdrop-blur-xl border border-white/10 rounded-lg shadow-xl z-20 overflow-hidden">
                                         <button
                                             onClick={() => {
                                                 setShowDetailModal(true)

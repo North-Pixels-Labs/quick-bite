@@ -1,6 +1,6 @@
 'use client'
-
 import React from 'react'
+import { motion } from "framer-motion"
 import { Bell, Search } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 
@@ -25,10 +25,14 @@ export const Header = () => {
     }
 
     return (
-        <header className="h-16 bg-[#121212] border-b border-white/10 flex items-center justify-between px-6 fixed top-0 right-0 left-64 z-40">
+        <motion.header
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="h-16 bg-black/20 backdrop-blur-xl border-b border-white/10 flex items-center justify-between px-6 z-40"
+        >
             {/* Search */}
-            <div className="flex items-center gap-3 w-96 bg-white/5 border border-white/10 rounded-lg px-3 py-2 focus-within:border-orange-500/50 transition-colors">
-                <Search className="w-4 h-4 text-gray-500" />
+            <div className="flex items-center gap-3 w-full max-w-md bg-white/5 border border-white/10 rounded-lg px-3 py-2 focus-within:border-orange-500/50 transition-colors ml-12 md:ml-0">
+                <Search className="w-4 h-4 text-gray-500 flex-shrink-0" />
                 <input
                     type="text"
                     placeholder="Search orders, menu items..."
@@ -44,15 +48,16 @@ export const Header = () => {
                 </button>
 
                 <div className="flex items-center gap-3 pl-4 border-l border-white/10">
-                    <div className="text-right hidden sm:block">
-                        <p className="text-sm font-medium text-white">{getDisplayName()}</p>
-                        <p className="text-xs text-gray-500">{user?.email || 'Restaurant Owner'}</p>
+                    <div className="text-right hidden lg:block">
+                        <p className="text-sm font-medium text-white truncate max-w-32">{getDisplayName()}</p>
+                        <p className="text-xs text-gray-500 truncate max-w-32">{user?.email || 'Restaurant Owner'}</p>
                     </div>
-                    <div className="w-8 h-8 bg-gradient-to-br from-orange-500 to-red-500 rounded-full flex items-center justify-center text-white font-bold text-xs">
+                    <div className="w-8 h-8 bg-gradient-to-br from-orange-500 to-red-500 rounded-full flex items-center justify-center text-white font-bold text-xs flex-shrink-0">
                         {getInitials()}
                     </div>
                 </div>
             </div>
-        </header>
+        </motion.header>
+
     )
 }

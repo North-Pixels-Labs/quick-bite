@@ -254,11 +254,86 @@ export interface CreateStaffRequest {
     permissions?: string
 }
 
+export interface RegisterStaffRequest {
+    email: string
+    phone: string
+    password?: string
+    first_name: string
+    last_name: string
+    role: 'manager' | 'staff' | 'kitchen_staff'
+    permissions: string[]
+}
+
 export interface UpdateStaffRequest {
     role?: string
     permissions?: string
     is_active?: boolean
 }
+
+// Permission definitions for better UX
+export interface StaffPermission {
+    key: string
+    label: string
+    description: string
+    defaultForRoles: string[]
+}
+
+export const STAFF_PERMISSIONS: StaffPermission[] = [
+    {
+        key: 'orders',
+        label: 'Order Management',
+        description: 'View and manage restaurant orders',
+        defaultForRoles: ['manager', 'staff', 'kitchen_staff']
+    },
+    {
+        key: 'menu',
+        label: 'Menu Management',
+        description: 'Create, edit, and manage menu items and categories',
+        defaultForRoles: ['manager']
+    },
+    {
+        key: 'zones',
+        label: 'Delivery Zones',
+        description: 'Manage delivery zones and settings',
+        defaultForRoles: ['manager']
+    },
+    {
+        key: 'staff',
+        label: 'Staff Management',
+        description: 'Add, edit, and manage staff members',
+        defaultForRoles: ['manager']
+    },
+    {
+        key: 'analytics',
+        label: 'Analytics & Reports',
+        description: 'View restaurant analytics and reports',
+        defaultForRoles: ['manager']
+    },
+    {
+        key: 'settings',
+        label: 'Restaurant Settings',
+        description: 'Modify restaurant settings and configuration',
+        defaultForRoles: ['manager']
+    }
+]
+
+export const STAFF_ROLES = [
+    {
+        value: 'staff',
+        label: 'Staff',
+        description: 'General staff member with basic permissions'
+    },
+    {
+        value: 'kitchen_staff',
+        label: 'Kitchen Staff',
+        description: 'Kitchen staff focused on order preparation'
+    },
+    {
+        value: 'manager',
+        label: 'Manager',
+        description: 'Manager with full access to restaurant operations'
+    }
+] as const
 
 export interface CreateZoneRequest {
     zone_name: string

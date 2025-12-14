@@ -28,7 +28,7 @@ export default function ItemDetailModal({ item, restaurantId, onClose, onEdit }:
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.95 }}
-                    className="w-full max-w-2xl bg-[#1A1A1A] border border-white/10 rounded-2xl overflow-hidden my-8"
+                    className="w-full max-w-2xl bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden my-8"
                 >
                     {/* Header with Image */}
                     <div className="relative h-64 bg-white/5">

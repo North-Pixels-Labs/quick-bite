@@ -30,7 +30,7 @@ export default function ManageOptionsModal({ item, restaurantId, onClose }: Mana
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.95 }}
-                    className="w-full max-w-3xl bg-[#1A1A1A] border border-white/10 rounded-2xl overflow-hidden my-8"
+                    className="w-full max-w-3xl bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden my-8"
                 >
                     {/* Header */}
                     <div className="flex items-center justify-between p-6 border-b border-white/10">
@@ -175,7 +175,7 @@ function OptionCard({
                                 className="fixed inset-0 z-10"
                                 onClick={() => setShowMenu(false)}
                             />
-                            <div className="absolute right-0 top-full mt-2 w-48 bg-[#1A1A1A] border border-white/10 rounded-lg shadow-xl z-20 overflow-hidden">
+                            <div className="absolute right-0 top-full mt-2 w-48 bg-black/40 backdrop-blur-xl border border-white/10 rounded-lg shadow-xl z-20 overflow-hidden">
                                 <button
                                     onClick={() => {
                                         setShowEditOption(true)
@@ -316,7 +316,7 @@ function AddOptionModal({
             <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="w-full max-w-md bg-[#1A1A1A] border border-white/10 rounded-2xl p-6"
+                className="w-full max-w-md bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl p-6"
             >
                 <div className="flex items-center justify-between mb-6">
                     <h3 className="text-lg font-bold text-white">Add Option</h3>
@@ -349,8 +349,8 @@ function AddOptionModal({
                             onChange={(e) => setType(e.target.value as 'single_select' | 'multi_select')}
                             className="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-orange-500/50"
                         >
-                            <option value="single_select" className="bg-[#1A1A1A]">Single Select (Choose one)</option>
-                            <option value="multi_select" className="bg-[#1A1A1A]">Multi Select (Choose multiple)</option>
+                            <option value="single_select" className="bg-black/40 backdrop-blur-xl">Single Select (Choose one)</option>
+                            <option value="multi_select" className="bg-black/40 backdrop-blur-xl">Multi Select (Choose multiple)</option>
                         </select>
                     </div>
 
@@ -459,7 +459,7 @@ function AddOptionValueModal({
             <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="w-full max-w-md bg-[#1A1A1A] border border-white/10 rounded-2xl p-6"
+                className="w-full max-w-md bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl p-6"
             >
                 <div className="flex items-center justify-between mb-6">
                     <h3 className="text-lg font-bold text-white">Add Option Value</h3>
@@ -590,7 +590,7 @@ function EditOptionModal({
 
     return (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="w-full max-w-md bg-[#1A1A1A] border border-white/10 rounded-2xl p-6">
+            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="w-full max-w-md bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl p-6">
                 <div className="flex items-center justify-between mb-6">
                     <h3 className="text-lg font-bold text-white">Edit Option</h3>
                     <button onClick={onClose} className="p-2 hover:bg-white/5 rounded-lg transition-colors">
@@ -605,8 +605,8 @@ function EditOptionModal({
                     <div>
                         <label className="block text-sm font-medium text-gray-300 mb-2">Selection Type *</label>
                         <select value={type} onChange={(e) => setType(e.target.value as 'single_select' | 'multi_select')} className="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-white">
-                            <option value="single_select" className="bg-[#1A1A1A]">Single Select</option>
-                            <option value="multi_select" className="bg-[#1A1A1A]">Multi Select</option>
+                            <option value="single_select" className="bg-black/40 backdrop-blur-xl">Single Select</option>
+                            <option value="multi_select" className="bg-black/40 backdrop-blur-xl">Multi Select</option>
                         </select>
                     </div>
                     <label className="flex items-center gap-2 cursor-pointer">
@@ -674,7 +674,7 @@ function EditOptionValueModal({
 
     return (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="w-full max-w-md bg-[#1A1A1A] border border-white/10 rounded-2xl p-6">
+            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="w-full max-w-md bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl p-6">
                 <div className="flex items-center justify-between mb-6">
                     <h3 className="text-lg font-bold text-white">Edit Option Value</h3>
                     <button onClick={onClose} className="p-2 hover:bg-white/5 rounded-lg transition-colors">

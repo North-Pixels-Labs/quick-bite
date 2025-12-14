@@ -125,8 +125,15 @@ export const staffApi = {
     create: (restaurantId: string, data: CreateStaffRequest) =>
         apiClient.post<ApiResponse<RestaurantStaff>>(`/restaurants/${restaurantId}/staff`, data),
 
+    // Better UX: Register staff with user creation
+    register: (restaurantId: string, data: RegisterStaffRequest) =>
+        apiClient.post<ApiResponse<{ staff: RestaurantStaff; user: any }>>(`/restaurants/${restaurantId}/staff/register`, data),
+
     update: (restaurantId: string, staffId: string, data: UpdateStaffRequest) =>
         apiClient.put<ApiResponse<RestaurantStaff>>(`/restaurants/${restaurantId}/staff/${staffId}`, data),
+
+    delete: (restaurantId: string, staffId: string) =>
+        apiClient.delete<ApiResponse<void>>(`/restaurants/${restaurantId}/staff/${staffId}`),
 }
 
 // Delivery Zone APIs
@@ -143,6 +150,14 @@ export const deliveryZoneApi = {
 
 // Order APIs
 export const orderApi = {
+    // Get restaurant orders
+    listRestaurantOrders: (restaurantId: string, params?: { status?: string }) =>
+        apiClient.get<ApiResponse<Order[]>>(`/restaurants/${restaurantId}/orders`, { params }),
+
+    // Get single order details
+    getOrder: (orderId: string) =>
+        apiClient.get<ApiResponse<Order>>(`/orders/${orderId}`),
+
     updateStatus: (orderId: string, data: UpdateOrderStatusRequest) =>
         apiClient.put<ApiResponse<Order>>(`/orders/${orderId}/status`, data),
 

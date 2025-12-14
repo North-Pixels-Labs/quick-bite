@@ -51,7 +51,7 @@ export default function AddCategoryModal({ restaurantId, onClose }: AddCategoryM
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.95 }}
-                    className="w-full max-w-md bg-[#1A1A1A] border border-white/10 rounded-2xl p-6"
+                    className="w-full max-w-md bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl p-6"
                 >
                     {/* Header */}
                     <div className="flex items-center justify-between mb-6">
