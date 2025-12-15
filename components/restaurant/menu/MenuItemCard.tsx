@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { MoreVertical, Image as ImageIcon, Leaf, Wheat, Edit, Trash2, Eye, Settings } from 'lucide-react'
+import { MoreVertical, Image as ImageIcon, Leaf, Wheat, Edit, Trash2, Eye, Settings, CheckSquare, Square } from 'lucide-react'
 import { assetUrl } from '@/lib/utils'
 import { useUpdateItemAvailability, useDeleteItem, useUpdateItem } from '@/hooks/useMenuQueries'
 import { useToast } from '@/components/shared/Toast'
@@ -17,9 +17,20 @@ interface MenuItemCardProps {
     restaurantId: string
     viewMode: 'grid' | 'list'
     categories: MenuCategory[]
+    bulkMode?: boolean
+    isSelected?: boolean
+    onSelect?: (itemId: string) => void
 }
 
-export default function MenuItemCard({ item, restaurantId, viewMode, categories }: MenuItemCardProps) {
+export default function MenuItemCard({ 
+    item, 
+    restaurantId, 
+    viewMode, 
+    categories, 
+    bulkMode = false, 
+    isSelected = false, 
+    onSelect 
+}: MenuItemCardProps) {
     const [showMenu, setShowMenu] = useState(false)
     const [showEditModal, setShowEditModal] = useState(false)
     const [showDetailModal, setShowDetailModal] = useState(false)
@@ -73,8 +84,23 @@ export default function MenuItemCard({ item, restaurantId, viewMode, categories 
                 <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
-                    className="flex items-center gap-4 p-4 bg-white/5 border border-white/10 rounded-xl hover:border-white/20 transition-colors"
+                    className={`flex items-center gap-4 p-4 bg-white/5 border rounded-xl hover:border-white/20 transition-colors ${
+                        isSelected ? 'border-orange-500 bg-orange-500/10' : 'border-white/10'
+                    }`}
                 >
+                    {/* Selection Checkbox */}
+                    {bulkMode && (
+                        <button
+                            onClick={() => onSelect?.(item.id)}
+                            className="flex-shrink-0"
+                        >
+                            {isSelected ? (
+                                <CheckSquare className="w-5 h-5 text-orange-400" />
+                            ) : (
+                                <Square className="w-5 h-5 text-gray-400 hover:text-white" />
+                            )}
+                        </button>
+                    )}
                     {/* Image */}
                     <div
                         className="w-20 h-20 bg-white/5 rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden cursor-pointer"
@@ -228,8 +254,23 @@ export default function MenuItemCard({ item, restaurantId, viewMode, categories 
             <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="bg-white/5 border border-white/10 rounded-xl overflow-hidden hover:border-white/20 transition-colors"
+                className={`bg-white/5 border rounded-xl overflow-hidden hover:border-white/20 transition-colors relative ${
+                    isSelected ? 'border-orange-500 bg-orange-500/10' : 'border-white/10'
+                }`}
             >
+                {/* Selection Checkbox */}
+                {bulkMode && (
+                    <button
+                        onClick={() => onSelect?.(item.id)}
+                        className="absolute top-3 left-3 z-10 bg-black/50 backdrop-blur-sm rounded-lg p-1"
+                    >
+                        {isSelected ? (
+                            <CheckSquare className="w-5 h-5 text-orange-400" />
+                        ) : (
+                            <Square className="w-5 h-5 text-gray-400 hover:text-white" />
+                        )}
+                    </button>
+                )}
                 {/* Image */}
                 <div
                     className="aspect-video bg-white/5 flex items-center justify-center overflow-hidden cursor-pointer"

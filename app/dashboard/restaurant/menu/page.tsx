@@ -2,9 +2,30 @@
 
 import React, { useState, useMemo } from 'react'
 import { motion } from 'framer-motion'
-import { Plus, Search, Grid, List } from 'lucide-react'
+import { 
+    Plus, 
+    Search, 
+    Grid, 
+    List, 
+    CheckSquare, 
+    Square, 
+    Trash2, 
+    Eye, 
+    EyeOff, 
+    Edit, 
+    MoreHorizontal,
+    X,
+    Download
+} from 'lucide-react'
 import { useRestaurants } from '@/hooks/useRestaurantQueries'
-import { useMenuCategories, useMenuItems, useUpdateCategory, useUpdateItem } from '@/hooks/useMenuQueries'
+import { 
+    useMenuCategories, 
+    useMenuItems, 
+    useUpdateCategory, 
+    useUpdateItem, 
+    useUpdateItemAvailability,
+    useDeleteItem 
+} from '@/hooks/useMenuQueries'
 import LoadingSpinner from '@/components/shared/LoadingSpinner'
 import EmptyState from '@/components/shared/EmptyState'
 import MenuCategoryCard from '@/components/restaurant/menu/MenuCategoryCard'
@@ -17,6 +38,9 @@ export default function MenuPage() {
     const [searchQuery, setSearchQuery] = useState('')
     const [showAddCategory, setShowAddCategory] = useState(false)
     const [showAddItem, setShowAddItem] = useState(false)
+    const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set())
+    const [bulkMode, setBulkMode] = useState(false)
+    const [showBulkActions, setShowBulkActions] = useState(false)
 
     // Fetch restaurants and get the first one (assuming single restaurant for now)
     const { data: restaurants, isLoading: loadingRestaurants } = useRestaurants()
@@ -27,6 +51,8 @@ export default function MenuPage() {
     const { data: items, isLoading: loadingItems } = useMenuItems(restaurantId || '')
     const updateCategory = useUpdateCategory()
     const updateItem = useUpdateItem()
+    const updateItemAvailability = useUpdateItemAvailability()
+    const deleteItem = useDeleteItem()
 
     const isLoading = loadingRestaurants || loadingCategories || loadingItems
 
@@ -48,6 +74,106 @@ export default function MenuPage() {
     const [dragItemId, setDragItemId] = useState<string | null>(null)
 
     const sortedCategories = useMemo(() => (categories || []).slice().sort((a, b) => a.sort_order - b.sort_order), [categories])
+
+    // Bulk operations
+    const handleSelectAll = () => {
+        if (selectedItems.size === filteredItems?.length) {
+            setSelectedItems(new Set())
+        } else {
+            setSelectedItems(new Set(filteredItems?.map(item => item.id) || []))
+        }
+    }
+
+    const handleItemSelect = (itemId: string) => {
+        const newSelected = new Set(selectedItems)
+        if (newSelected.has(itemId)) {
+            newSelected.delete(itemId)
+        } else {
+            newSelected.add(itemId)
+        }
+        setSelectedItems(newSelected)
+    }
+
+    const handleBulkAvailability = async (isAvailable: boolean) => {
+        if (!restaurantId) return
+        
+        const promises = Array.from(selectedItems).map(itemId =>
+            updateItemAvailability.mutateAsync({
+                restaurantId,
+                itemId,
+                data: { is_available: isAvailable }
+            })
+        )
+        
+        try {
+            await Promise.all(promises)
+            setSelectedItems(new Set())
+            setBulkMode(false)
+        } catch (error) {
+            console.error('Bulk availability update failed:', error)
+        }
+    }
+
+    const handleBulkDelete = async () => {
+        if (!restaurantId) return
+        
+        if (confirm(`Are you sure you want to delete ${selectedItems.size} items? This action cannot be undone.`)) {
+            const promises = Array.from(selectedItems).map(itemId =>
+                deleteItem.mutateAsync({
+                    restaurantId,
+                    itemId
+                })
+            )
+            
+            try {
+                await Promise.all(promises)
+                setSelectedItems(new Set())
+                setBulkMode(false)
+            } catch (error) {
+                console.error('Bulk delete failed:', error)
+            }
+        }
+    }
+
+    const exportMenuData = () => {
+        if (!items || !categories) return
+
+        const menuData = {
+            restaurant_id: restaurantId,
+            exported_at: new Date().toISOString(),
+            categories: categories.map(cat => ({
+                id: cat.id,
+                name: cat.name,
+                description: cat.description,
+                sort_order: cat.sort_order,
+                is_active: cat.is_active
+            })),
+            items: items.map(item => ({
+                id: item.id,
+                category_id: item.category_id,
+                name: item.name,
+                description: item.description,
+                price: item.price / 100, // Convert to cedis
+                is_available: item.is_available,
+                is_vegetarian: item.is_vegetarian,
+                is_vegan: item.is_vegan,
+                is_gluten_free: item.is_gluten_free,
+                calories: item.calories,
+                preparation_time: item.preparation_time,
+                sort_order: item.sort_order
+            }))
+        }
+
+        const blob = new Blob([JSON.stringify(menuData, null, 2)], { type: 'application/json' })
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = `menu-export-${new Date().toISOString().split('T')[0]}.json`
+        document.body.appendChild(a)
+        a.click()
+        document.body.removeChild(a)
+        URL.revokeObjectURL(url)
+    }
 
     if (isLoading) {
         return (
@@ -73,28 +199,103 @@ export default function MenuPage() {
             <div className="flex items-center justify-between">
                 <div>
                     <h1 className="text-2xl font-bold text-white">Menu Management</h1>
-                    <p className="text-gray-400">Manage your menu categories and items</p>
+                    <p className="text-gray-400">
+                        Manage your menu categories and items
+                        {selectedItems.size > 0 && ` • ${selectedItems.size} items selected`}
+                    </p>
                 </div>
                 <div className="flex items-center gap-3">
-                    <button
-                        onClick={() => setShowAddCategory(true)}
-                        className="px-4 py-2 bg-white/5 hover:bg-white/10 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
-                    >
-                        <Plus className="w-4 h-4" />
-                        Add Category
-                    </button>
-                    <button
-                        onClick={() => setShowAddItem(true)}
-                        className="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
-                    >
-                        <Plus className="w-4 h-4" />
-                        Add Item
-                    </button>
+                    {selectedItems.size > 0 ? (
+                        <>
+                            <button
+                                onClick={() => handleBulkAvailability(true)}
+                                className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
+                            >
+                                <Eye className="w-4 h-4" />
+                                Make Available
+                            </button>
+                            <button
+                                onClick={() => handleBulkAvailability(false)}
+                                className="px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
+                            >
+                                <EyeOff className="w-4 h-4" />
+                                Make Unavailable
+                            </button>
+                            <button
+                                onClick={handleBulkDelete}
+                                className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
+                            >
+                                <Trash2 className="w-4 h-4" />
+                                Delete Selected
+                            </button>
+                            <button
+                                onClick={() => {
+                                    setSelectedItems(new Set())
+                                    setBulkMode(false)
+                                }}
+                                className="px-4 py-2 bg-white/5 hover:bg-white/10 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
+                            >
+                                <X className="w-4 h-4" />
+                                Cancel
+                            </button>
+                        </>
+                    ) : (
+                        <>
+                            <button
+                                onClick={exportMenuData}
+                                className="px-4 py-2 bg-white/5 hover:bg-white/10 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
+                            >
+                                <Download className="w-4 h-4" />
+                                Export Menu
+                            </button>
+                            <button
+                                onClick={() => setBulkMode(!bulkMode)}
+                                className={`px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 ${
+                                    bulkMode 
+                                        ? 'bg-orange-500 text-white' 
+                                        : 'bg-white/5 hover:bg-white/10 text-white'
+                                }`}
+                            >
+                                <CheckSquare className="w-4 h-4" />
+                                Bulk Select
+                            </button>
+                            <button
+                                onClick={() => setShowAddCategory(true)}
+                                className="px-4 py-2 bg-white/5 hover:bg-white/10 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
+                            >
+                                <Plus className="w-4 h-4" />
+                                Add Category
+                            </button>
+                            <button
+                                onClick={() => setShowAddItem(true)}
+                                className="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
+                            >
+                                <Plus className="w-4 h-4" />
+                                Add Item
+                            </button>
+                        </>
+                    )}
                 </div>
             </div>
 
             {/* Search and View Toggle */}
             <div className="flex items-center gap-4">
+                {bulkMode && filteredItems && filteredItems.length > 0 && (
+                    <button
+                        onClick={handleSelectAll}
+                        className="flex items-center gap-2 px-3 py-2 bg-white/5 hover:bg-white/10 rounded-lg transition-colors"
+                    >
+                        {selectedItems.size === filteredItems.length ? (
+                            <CheckSquare className="w-4 h-4 text-orange-400" />
+                        ) : (
+                            <Square className="w-4 h-4 text-gray-400" />
+                        )}
+                        <span className="text-sm text-white">
+                            Select All ({filteredItems.length})
+                        </span>
+                    </button>
+                )}
+                
                 <div className="flex-1 relative">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                     <input
@@ -198,6 +399,9 @@ export default function MenuPage() {
                                                         restaurantId={restaurantId}
                                                         viewMode={viewMode}
                                                         categories={categories}
+                                                        bulkMode={bulkMode}
+                                                        isSelected={selectedItems.has(item.id)}
+                                                        onSelect={handleItemSelect}
                                                     />
                                                 </div>
                                             ))}

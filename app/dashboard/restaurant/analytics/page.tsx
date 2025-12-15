@@ -7,7 +7,6 @@ import {
     TrendingDown, 
     DollarSign, 
     ShoppingBag, 
-    Users, 
     Clock,
     Calendar,
     BarChart3,
@@ -17,7 +16,6 @@ import {
 } from 'lucide-react'
 import { 
     ResponsiveContainer, 
-    LineChart as RechartsLineChart, 
     AreaChart, 
     BarChart as RechartsBarChart,
     PieChart as RechartsPieChart,
@@ -34,7 +32,7 @@ import {
 } from 'recharts'
 import { useRestaurants } from '@/hooks/useRestaurantQueries'
 import { useDailyAnalytics, useWeeklyAnalytics, useMonthlyAnalytics } from '@/hooks/useAnalyticsQueries'
-import { format, subDays, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from 'date-fns'
+import { format, subDays } from 'date-fns'
 
 const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-GH', {
@@ -57,16 +55,7 @@ const CHART_COLORS = {
     indigo: '#6366f1', // indigo-500
 }
 
-const PIE_COLORS = [
-    CHART_COLORS.primary,
-    CHART_COLORS.secondary,
-    CHART_COLORS.success,
-    CHART_COLORS.warning,
-    CHART_COLORS.purple,
-    CHART_COLORS.pink,
-    CHART_COLORS.indigo,
-    CHART_COLORS.danger,
-]
+
 
 // Custom tooltip component
 const CustomTooltip = ({ active, payload, label }: any) => {
@@ -537,43 +526,120 @@ export default function AnalyticsPage() {
                 </div>
             </motion.div>
 
-            {/* Performance Metrics */}
-            <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="bg-black/40 backdrop-blur-xl border border-white/5 rounded-2xl p-6"
-            >
-                <h2 className="text-lg font-semibold text-white mb-6">Performance Metrics</h2>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div className="text-center">
-                        <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-3">
-                            <TrendingUp className="w-8 h-8 text-green-400" />
-                        </div>
-                        <h3 className="text-2xl font-bold text-white mb-1">
-                            {(100 - summaryStats.cancellationRate).toFixed(1)}%
-                        </h3>
-                        <p className="text-sm text-gray-400">Order Success Rate</p>
+            {/* Performance Metrics Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Performance Overview */}
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="bg-black/40 backdrop-blur-xl border border-white/5 rounded-2xl p-6"
+                >
+                    <div className="flex items-center justify-between mb-6">
+                        <h2 className="text-lg font-semibold text-white">Performance Overview</h2>
+                        <TrendingUp className="w-5 h-5 text-gray-400" />
                     </div>
-                    <div className="text-center">
-                        <div className="w-16 h-16 bg-blue-500/20 rounded-full flex items-center justify-center mx-auto mb-3">
-                            <Clock className="w-8 h-8 text-blue-400" />
+                    <div className="space-y-6">
+                        <div className="text-center">
+                            <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-3">
+                                <TrendingUp className="w-8 h-8 text-green-400" />
+                            </div>
+                            <h3 className="text-2xl font-bold text-white mb-1">
+                                {(100 - summaryStats.cancellationRate).toFixed(1)}%
+                            </h3>
+                            <p className="text-sm text-gray-400">Order Success Rate</p>
                         </div>
-                        <h3 className="text-2xl font-bold text-white mb-1">
-                            {Math.round(summaryStats.avgDeliveryTime)}
-                        </h3>
-                        <p className="text-sm text-gray-400">Avg. Delivery Time (min)</p>
-                    </div>
-                    <div className="text-center">
-                        <div className="w-16 h-16 bg-purple-500/20 rounded-full flex items-center justify-center mx-auto mb-3">
-                            <DollarSign className="w-8 h-8 text-purple-400" />
+                        <div className="text-center">
+                            <div className="w-16 h-16 bg-blue-500/20 rounded-full flex items-center justify-center mx-auto mb-3">
+                                <Clock className="w-8 h-8 text-blue-400" />
+                            </div>
+                            <h3 className="text-2xl font-bold text-white mb-1">
+                                {Math.round(summaryStats.avgDeliveryTime)} min
+                            </h3>
+                            <p className="text-sm text-gray-400">Avg Delivery Time</p>
                         </div>
-                        <h3 className="text-2xl font-bold text-white mb-1">
-                            {formatCurrency(summaryStats.avgOrderValue)}
-                        </h3>
-                        <p className="text-sm text-gray-400">Avg. Order Value</p>
+                        <div className="text-center">
+                            <div className="w-16 h-16 bg-purple-500/20 rounded-full flex items-center justify-center mx-auto mb-3">
+                                <DollarSign className="w-8 h-8 text-purple-400" />
+                            </div>
+                            <h3 className="text-2xl font-bold text-white mb-1">
+                                {formatCurrency(summaryStats.avgOrderValue)}
+                            </h3>
+                            <p className="text-sm text-gray-400">Avg Order Value</p>
+                        </div>
                     </div>
-                </div>
-            </motion.div>
+                </motion.div>
+
+                {/* Quick Stats */}
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="bg-black/40 backdrop-blur-xl border border-white/5 rounded-2xl p-6"
+                >
+                    <div className="flex items-center justify-between mb-6">
+                        <h2 className="text-lg font-semibold text-white">Quick Stats</h2>
+                        <BarChart3 className="w-5 h-5 text-gray-400" />
+                    </div>
+                    <div className="space-y-4">
+                        <div className="flex items-center justify-between">
+                            <span className="text-gray-400">Total Orders</span>
+                            <span className="text-white font-semibold">{summaryStats.totalOrders}</span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                            <span className="text-gray-400">Total Revenue</span>
+                            <span className="text-white font-semibold">{formatCurrency(summaryStats.totalRevenue)}</span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                            <span className="text-gray-400">Cancellation Rate</span>
+                            <span className="text-white font-semibold">{summaryStats.cancellationRate.toFixed(1)}%</span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                            <span className="text-gray-400">Success Rate</span>
+                            <span className="text-green-400 font-semibold">{(100 - summaryStats.cancellationRate).toFixed(1)}%</span>
+                        </div>
+                    </div>
+                </motion.div>
+
+                {/* Top Insights */}
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="bg-black/40 backdrop-blur-xl border border-white/5 rounded-2xl p-6"
+                >
+                    <div className="flex items-center justify-between mb-6">
+                        <h2 className="text-lg font-semibold text-white">Insights</h2>
+                        <TrendingUp className="w-5 h-5 text-gray-400" />
+                    </div>
+                    <div className="space-y-4">
+                        <div className="p-3 bg-green-500/10 border border-green-500/20 rounded-lg">
+                            <div className="flex items-center gap-2 mb-1">
+                                <TrendingUp className="w-4 h-4 text-green-400" />
+                                <span className="text-green-400 font-medium text-sm">Good Performance</span>
+                            </div>
+                            <p className="text-xs text-gray-300">
+                                Your success rate is above 90%
+                            </p>
+                        </div>
+                        <div className="p-3 bg-orange-500/10 border border-orange-500/20 rounded-lg">
+                            <div className="flex items-center gap-2 mb-1">
+                                <Clock className="w-4 h-4 text-orange-400" />
+                                <span className="text-orange-400 font-medium text-sm">Delivery Time</span>
+                            </div>
+                            <p className="text-xs text-gray-300">
+                                Average delivery time: {Math.round(summaryStats.avgDeliveryTime)} minutes
+                            </p>
+                        </div>
+                        <div className="p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+                            <div className="flex items-center gap-2 mb-1">
+                                <DollarSign className="w-4 h-4 text-blue-400" />
+                                <span className="text-blue-400 font-medium text-sm">Revenue Growth</span>
+                            </div>
+                            <p className="text-xs text-gray-300">
+                                Total revenue: {formatCurrency(summaryStats.totalRevenue)}
+                            </p>
+                        </div>
+                    </div>
+                </motion.div>
+            </div>
 
             {/* Data Table */}
             {currentData && currentData.length > 0 && (
