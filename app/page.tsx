@@ -159,13 +159,14 @@ const QuickBiteLanding = () => {
             >
               Order Now <ArrowRight className="w-5 h-5" />
             </motion.button>
-            <motion.button
+            <motion.a
+              href="/discover"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className="px-8 py-4 rounded-full bg-white/10 backdrop-blur-xl border border-white/20 font-semibold text-lg hover:bg-white/20 transition-all"
+              className="px-8 py-4 rounded-full bg-white/10 backdrop-blur-xl border border-white/20 font-semibold text-lg hover:bg-white/20 transition-all inline-block"
             >
               View Restaurants
-            </motion.button>
+            </motion.a>
           </motion.div>
 
           <motion.div
@@ -335,96 +336,32 @@ const QuickBiteLanding = () => {
         </div>
       </section>
 
-      {/* Interactive Restaurant Section */}
+      {/* Restaurant Discovery CTA */}
       <section id="restaurants" className="py-20 px-6">
         <div className="max-w-7xl mx-auto">
           <motion.div
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
-            className="text-center mb-12"
+            className="text-center"
           >
             <h2 className="text-4xl md:text-5xl font-bold mb-4">
               <span className="bg-gradient-to-r from-yellow-400 to-orange-400 bg-clip-text text-transparent">
-                Popular Restaurants
+                Discover Amazing Restaurants
               </span>
             </h2>
-            <p className="text-gray-400 text-lg mb-8">Order from top-rated restaurants near you</p>
+            <p className="text-gray-400 text-lg mb-8 max-w-2xl mx-auto">
+              Explore hundreds of restaurants in your city, from local favorites to international cuisine
+            </p>
 
-            {/* Category Filter */}
-            <div className="flex flex-wrap justify-center gap-3">
-              {foodCategories.map((category) => (
-                <motion.button
-                  key={category.id}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => setActiveCategory(category.id)}
-                  className={`px-6 py-3 rounded-full font-medium transition-all flex items-center gap-2 ${activeCategory === category.id
-                    ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'
-                    : 'bg-white/10 text-gray-400 hover:bg-white/20'
-                    }`}
-                >
-                  <category.icon className="w-4 h-4" />
-                  {category.name}
-                </motion.button>
-              ))}
-            </div>
-          </motion.div>
-
-          <motion.div
-            layout
-            className="grid grid-cols-1 md:grid-cols-3 gap-6"
-          >
-            <AnimatePresence mode="popLayout">
-              {filteredRestaurants.map((restaurant, i) => (
-                <motion.div
-                  key={restaurant.id}
-                  layout
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.8 }}
-                  transition={{ delay: i * 0.05 }}
-                  whileHover={{ y: -10 }}
-                  onHoverStart={() => setHoveredCard(restaurant.id)}
-                  onHoverEnd={() => setHoveredCard(null)}
-                  className="relative group"
-                >
-                  <div className="absolute inset-0 bg-gradient-to-br opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl blur-xl"
-                    style={{ background: `linear-gradient(to bottom right, var(--tw-gradient-stops))` }}
-                  />
-                  <div className={`relative p-6 rounded-2xl bg-gradient-to-br ${restaurant.color} backdrop-blur-xl border border-white/10 overflow-hidden`}>
-                    <motion.div
-                      className="text-6xl mb-4"
-                      animate={{
-                        rotate: hoveredCard === restaurant.id ? [0, -10, 10, -10, 0] : 0,
-                        scale: hoveredCard === restaurant.id ? 1.1 : 1
-                      }}
-                      transition={{ duration: 0.5 }}
-                    >
-                      {restaurant.image}
-                    </motion.div>
-                    <h3 className="text-xl font-bold mb-2">{restaurant.name}</h3>
-                    <div className="flex items-center gap-4 text-sm text-gray-400">
-                      <div className="flex items-center gap-1">
-                        <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
-                        <span>{restaurant.rating}</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Clock className="w-4 h-4" />
-                        <span>{restaurant.time} min</span>
-                      </div>
-                    </div>
-                    <motion.button
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      className="mt-4 w-full py-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors font-medium"
-                    >
-                      Order Now
-                    </motion.button>
-                  </div>
-                </motion.div>
-              ))}
-            </AnimatePresence>
+            <motion.a
+              href="/discover"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="inline-flex items-center gap-3 px-8 py-4 rounded-full bg-gradient-to-r from-yellow-400 to-orange-500 font-bold text-black text-lg hover:shadow-lg hover:shadow-yellow-500/25 transition-all"
+            >
+              Explore Restaurants <ArrowRight className="w-5 h-5" />
+            </motion.a>
           </motion.div>
         </div>
       </section>

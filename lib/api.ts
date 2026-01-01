@@ -187,6 +187,74 @@ export const analyticsApi = {
         apiClient.get<ApiResponse<MonthlyAnalytics[]>>(`/analytics/restaurants/${restaurantId}/monthly`, { params }),
 }
 
+// Discovery APIs
+export const discoveryApi = {
+    restaurantsByCity: (city: string) =>
+        apiClient.get<ApiResponse<Restaurant[]>>(`/discovery/restaurants?city=${encodeURIComponent(city)}`),
+
+    restaurantsNearby: (lat: number, lng: number, radiusKm: number, useZones?: boolean) =>
+        apiClient.get<ApiResponse<any[]>>(`/discovery/restaurants/nearby?lat=${lat}&lng=${lng}&radius_km=${radiusKm}${useZones ? '&use_zones=true' : ''}`),
+
+    restaurantsNearMe: () =>
+        apiClient.get<ApiResponse<Restaurant[]>>('/discovery/restaurants/near-me'),
+}
+
+// Customer APIs
+export const customerApi = {
+    // Orders
+    getOrders: () =>
+        apiClient.get<ApiResponse<any[]>>('/orders'),
+
+    getOrder: (orderId: string) =>
+        apiClient.get<ApiResponse<any>>(`/orders/${orderId}`),
+
+    createOrder: (data: any) =>
+        apiClient.post<ApiResponse<any>>('/orders', data),
+
+    updateOrderStatus: (orderId: string, data: { status: string }) =>
+        apiClient.put<ApiResponse<any>>(`/orders/${orderId}/status`, data),
+
+    getOrderStatusHistory: (orderId: string) =>
+        apiClient.get<ApiResponse<any[]>>(`/orders/${orderId}/status-history`),
+
+    // Cart
+    getCart: () =>
+        apiClient.get<ApiResponse<any>>('/cart'),
+
+    addToCart: (data: any) =>
+        apiClient.post<ApiResponse<any>>('/cart/items', data),
+
+    updateCartItem: (itemId: string, data: any) =>
+        apiClient.put<ApiResponse<any>>(`/cart/items/${itemId}`, data),
+
+    removeFromCart: (itemId: string) =>
+        apiClient.delete<ApiResponse<any>>(`/cart/items/${itemId}`),
+
+    clearCart: () =>
+        apiClient.post<ApiResponse<any>>('/cart/clear'),
+
+    // Favorites
+    getFavorites: () =>
+        apiClient.get<ApiResponse<any[]>>('/favorites/restaurants'),
+
+    addFavorite: (restaurantId: string) =>
+        apiClient.post<ApiResponse<any>>('/favorites/restaurants', { restaurant_id: restaurantId }),
+
+    removeFavorite: (restaurantId: string) =>
+        apiClient.delete<ApiResponse<any>>(`/favorites/restaurants/${restaurantId}`),
+
+    // Notifications
+    getNotifications: () =>
+        apiClient.get<ApiResponse<any[]>>('/notifications'),
+
+    markNotificationRead: (notificationId: string) =>
+        apiClient.post<ApiResponse<any>>(`/notifications/${notificationId}/read`),
+
+    // Reviews
+    createReview: (data: any) =>
+        apiClient.post<ApiResponse<any>>('/reviews', data),
+}
+
 // Rider APIs
 export const riderApi = {
     // Get rider profile

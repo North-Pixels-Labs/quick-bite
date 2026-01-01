@@ -72,6 +72,53 @@ export const Sidebar = () => {
             ]
         }
 
+        if (userType === 'customer') {
+            return [
+                {
+                    icon: LayoutDashboard,
+                    label: 'Overview',
+                    href: '/dashboard/customer',
+                    color: 'text-emerald-400',
+                    bgColor: 'bg-emerald-400/10'
+                },
+                {
+                    icon: ShoppingBag,
+                    label: 'Orders',
+                    href: '/dashboard/customer/orders',
+                    color: 'text-green-400',
+                    bgColor: 'bg-green-400/10'
+                },
+                {
+                    icon: Package,
+                    label: 'Active Orders',
+                    href: '/dashboard/customer/active-orders',
+                    color: 'text-orange-400',
+                    bgColor: 'bg-orange-400/10'
+                },
+                {
+                    icon: Search,
+                    label: 'Favorites',
+                    href: '/dashboard/customer/favorites',
+                    color: 'text-red-400',
+                    bgColor: 'bg-red-400/10'
+                },
+                {
+                    icon: Bell,
+                    label: 'Notifications',
+                    href: '/dashboard/customer/notifications',
+                    color: 'text-blue-400',
+                    bgColor: 'bg-blue-400/10'
+                },
+                {
+                    icon: Settings,
+                    label: 'Profile',
+                    href: '/dashboard/customer/profile',
+                    color: 'text-gray-400',
+                    bgColor: 'bg-gray-400/10'
+                },
+            ]
+        }
+
         // Default to restaurant menu
         return [
             {
@@ -191,7 +238,8 @@ export const Sidebar = () => {
                                     <div>
                                         <h2 className="text-white font-bold text-lg">QuickBite</h2>
                                         <p className="text-gray-400 text-sm truncate">
-                                            {user?.user_type === 'rider' ? 'Rider Portal' : 'Restaurant Portal'}
+                                            {user?.user_type === 'rider' ? 'Rider Portal' :
+                                             user?.user_type === 'customer' ? 'Customer Portal' : 'Restaurant Portal'}
                                         </p>
                                     </div>
                                 </motion.div>
@@ -331,7 +379,10 @@ export const Sidebar = () => {
                                     </div>
                                     <div>
                                         <h2 className="text-white font-bold text-lg">QuickBite</h2>
-                                        <p className="text-gray-400 text-sm">{user?.user_type === 'rider' ? 'Rider Portal' : 'Restaurant Portal'}</p>
+                                        <p className="text-gray-400 text-sm">
+                                            {user?.user_type === 'rider' ? 'Rider Portal' :
+                                             user?.user_type === 'customer' ? 'Customer Portal' : 'Restaurant Portal'}
+                                        </p>
                                     </div>
                                 </div>
                             </div>
