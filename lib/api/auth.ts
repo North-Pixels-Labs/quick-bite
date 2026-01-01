@@ -104,6 +104,42 @@ export const authApi = {
         return restaurantRes.json();
     },
 
+    register: async (data: any) => {
+        // Register User with customer type and location
+        const registerRes = await fetch(`${API_BASE_URL}/auth/register`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                email: data.email,
+                phone: data.phone,
+                password: data.password,
+                user_type: 'customer',
+                first_name: data.firstName,
+                last_name: data.lastName,
+                location: {
+                    address_line_1: data.streetAddress,
+                    city: data.city,
+                    region: data.state,
+                    postal_code: data.postalCode,
+                    country: data.country,
+                    is_default: true
+                }
+            }),
+        });
+
+        if (!registerRes.ok) {
+            const errorText = await registerRes.text();
+            try {
+                const errorJson = JSON.parse(errorText);
+                throw new Error(errorJson.error || 'Registration failed');
+            } catch (e) {
+                throw new Error(errorText || 'Registration failed');
+            }
+        }
+
+        return registerRes.json();
+    },
+
     registerRider: async (data: any) => {
         // Register User with rider type and location
         const registerRes = await fetch(`${API_BASE_URL}/auth/register`, {
