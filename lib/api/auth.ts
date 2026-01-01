@@ -103,6 +103,43 @@ export const authApi = {
 
         return restaurantRes.json();
     },
+
+    registerRider: async (data: any) => {
+        // Register User with rider type and location
+        const registerRes = await fetch(`${API_BASE_URL}/auth/register`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                email: data.email,
+                phone: data.phone,
+                password: data.password,
+                user_type: 'rider',
+                first_name: data.firstName,
+                last_name: data.lastName,
+                location: {
+                    address_line_1: data.streetAddress,
+                    city: data.city,
+                    region: data.state,
+                    postal_code: data.postalCode,
+                    country: data.country,
+                    is_default: true,
+                    delivery_instructions: data.deliveryInstructions || null
+                }
+            }),
+        });
+
+        if (!registerRes.ok) {
+            const errorText = await registerRes.text();
+            try {
+                const errorJson = JSON.parse(errorText);
+                throw new Error(errorJson.error || 'Registration failed');
+            } catch (e) {
+                throw new Error(errorText || 'Registration failed');
+            }
+        }
+
+        return registerRes.json();
+    },
     sendLoginOTP: async (identifier: string, type: 'email' | 'phone') => {
         const endpoint = type === 'email' ? '/auth/login/email/send-otp' : '/auth/login/phone/send-otp';
         const body = type === 'email' ? { email: identifier } : { phone: identifier };

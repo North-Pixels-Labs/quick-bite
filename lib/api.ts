@@ -24,6 +24,7 @@ import type {
     UpdateOrderStatusRequest,
     OrderFilters,
     ApiResponse,
+    RegisterStaffRequest,
 } from '@/types/restaurant.types'
 
 // Restaurant APIs
@@ -184,4 +185,81 @@ export const analyticsApi = {
 
     getMonthly: (restaurantId: string, params?: { year?: number; month?: number }) =>
         apiClient.get<ApiResponse<MonthlyAnalytics[]>>(`/analytics/restaurants/${restaurantId}/monthly`, { params }),
+}
+
+// Rider APIs
+export const riderApi = {
+    // Get rider profile
+    getProfile: () =>
+        apiClient.get<ApiResponse<any>>('/riders/me'),
+
+    // Update online status
+    setOnline: (online: boolean) =>
+        apiClient.put<ApiResponse<any>>('/riders/me/online', { online }),
+
+    // Update availability
+    setAvailability: (available: boolean) =>
+        apiClient.put<ApiResponse<any>>('/riders/me/availability', { available }),
+
+    // Update location
+    updateLocation: (latitude: number, longitude: number) =>
+        apiClient.put<ApiResponse<any>>('/riders/me/location', { latitude, longitude }),
+
+    // Get assignment requests
+    getRequests: () =>
+        apiClient.get<ApiResponse<any[]>>('/riders/me/requests'),
+
+    // Mark request as viewed
+    markRequestViewed: (requestId: string) =>
+        apiClient.put<ApiResponse<any>>(`/riders/me/requests/${requestId}/viewed`),
+
+    // Decline request
+    declineRequest: (requestId: string) =>
+        apiClient.put<ApiResponse<any>>(`/riders/me/requests/${requestId}/decline`),
+
+    // Accept assignment
+    acceptAssignment: (orderId: string) =>
+        apiClient.post<ApiResponse<any>>(`/orders/${orderId}/assignments/accept`),
+
+    // Confirm delivery by code
+    confirmDeliveryByCode: (orderId: string, code: string) =>
+        apiClient.post<ApiResponse<any>>(`/orders/${orderId}/confirm-delivery/code`, { code }),
+
+    // Confirm delivery by QR
+    confirmDeliveryByQr: (orderId: string, qr: string) =>
+        apiClient.post<ApiResponse<any>>(`/orders/${orderId}/confirm-delivery/qr`, { qr }),
+
+    // Upload documents
+    uploadDocument: (formData: FormData) =>
+        apiClient.post<ApiResponse<any>>('/riders/me/documents', formData, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+        }),
+
+    // List documents
+    getDocuments: () =>
+        apiClient.get<ApiResponse<any[]>>('/riders/me/documents'),
+
+    // Get active deliveries
+    getActiveDeliveries: () =>
+        apiClient.get<ApiResponse<any[]>>('/riders/me/deliveries/active'),
+
+    // Get earnings summary
+    getEarningsSummary: (params?: { period?: string; start?: string; end?: string }) =>
+        apiClient.get<ApiResponse<any>>('/riders/me/earnings/summary', { params }),
+
+    // Schedule shift
+    scheduleShift: (startTime: number) =>
+        apiClient.post<ApiResponse<any>>('/riders/me/shifts', { start: startTime }),
+
+    // Start shift
+    startShift: (shiftId: string) =>
+        apiClient.put<ApiResponse<any>>(`/riders/me/shifts/${shiftId}/start`),
+
+    // End shift
+    endShift: (shiftId: string) =>
+        apiClient.put<ApiResponse<any>>(`/riders/me/shifts/${shiftId}/end`),
+
+    // List shifts
+    getShifts: () =>
+        apiClient.get<ApiResponse<any[]>>('/riders/me/shifts'),
 }

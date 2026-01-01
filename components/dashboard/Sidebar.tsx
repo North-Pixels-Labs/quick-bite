@@ -20,6 +20,7 @@ import {
 } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 import { useSidebar } from '@/context/SidebarContext'
+import { Bike, MapPin, FileText, Package } from 'lucide-react'
 
 export const Sidebar = () => {
     const { isCollapsed, setIsCollapsed, isMobileOpen, setIsMobileOpen } = useSidebar()
@@ -27,50 +28,98 @@ export const Sidebar = () => {
     const router = useRouter()
     const { user, logout } = useAuth()
 
-    const menuItems = [
-        { 
-            icon: LayoutDashboard, 
-            label: 'Overview', 
-            href: '/dashboard/restaurant',
-            color: 'text-cyan-400',
-            bgColor: 'bg-cyan-400/10'
-        },
-        { 
-            icon: ShoppingBag, 
-            label: 'Orders', 
-            href: '/dashboard/restaurant/orders',
-            color: 'text-green-400',
-            bgColor: 'bg-green-400/10'
-        },
-        { 
-            icon: UtensilsCrossed, 
-            label: 'Menu', 
-            href: '/dashboard/restaurant/menu',
-            color: 'text-orange-400',
-            bgColor: 'bg-orange-400/10'
-        },
-        { 
-            icon: BarChart3, 
-            label: 'Analytics', 
-            href: '/dashboard/restaurant/analytics',
-            color: 'text-blue-400',
-            bgColor: 'bg-blue-400/10'
-        },
-        { 
-            icon: Users, 
-            label: 'Staff', 
-            href: '/dashboard/restaurant/staff',
-            color: 'text-purple-400',
-            bgColor: 'bg-purple-400/10'
-        },
-        { 
-            icon: Settings, 
-            label: 'Settings', 
-            href: '/dashboard/restaurant/settings',
-            color: 'text-gray-400',
-            bgColor: 'bg-gray-400/10'
-        },
-    ]
+    // Dynamic menu items based on user type
+    const getMenuItems = () => {
+        const userType = user?.user_type
+
+        if (userType === 'rider') {
+            return [
+                {
+                    icon: LayoutDashboard,
+                    label: 'Overview',
+                    href: '/dashboard/rider',
+                    color: 'text-cyan-400',
+                    bgColor: 'bg-cyan-400/10'
+                },
+                {
+                    icon: Package,
+                    label: 'Deliveries',
+                    href: '/dashboard/rider/deliveries',
+                    color: 'text-green-400',
+                    bgColor: 'bg-green-400/10'
+                },
+                {
+                    icon: MapPin,
+                    label: 'Requests',
+                    href: '/dashboard/rider/requests',
+                    color: 'text-orange-400',
+                    bgColor: 'bg-orange-400/10'
+                },
+                {
+                    icon: FileText,
+                    label: 'Documents',
+                    href: '/dashboard/rider/documents',
+                    color: 'text-blue-400',
+                    bgColor: 'bg-blue-400/10'
+                },
+                {
+                    icon: Settings,
+                    label: 'Settings',
+                    href: '/dashboard/rider/settings',
+                    color: 'text-gray-400',
+                    bgColor: 'bg-gray-400/10'
+                },
+            ]
+        }
+
+        // Default to restaurant menu
+        return [
+            {
+                icon: LayoutDashboard,
+                label: 'Overview',
+                href: '/dashboard/restaurant',
+                color: 'text-cyan-400',
+                bgColor: 'bg-cyan-400/10'
+            },
+            {
+                icon: ShoppingBag,
+                label: 'Orders',
+                href: '/dashboard/restaurant/orders',
+                color: 'text-green-400',
+                bgColor: 'bg-green-400/10'
+            },
+            {
+                icon: UtensilsCrossed,
+                label: 'Menu',
+                href: '/dashboard/restaurant/menu',
+                color: 'text-orange-400',
+                bgColor: 'bg-orange-400/10'
+            },
+            {
+                icon: BarChart3,
+                label: 'Analytics',
+                href: '/dashboard/restaurant/analytics',
+                color: 'text-blue-400',
+                bgColor: 'bg-blue-400/10'
+            },
+            {
+                icon: Users,
+                label: 'Staff',
+                href: '/dashboard/restaurant/staff',
+                color: 'text-purple-400',
+                bgColor: 'bg-purple-400/10'
+            },
+            {
+                icon: Settings,
+                label: 'Settings',
+                href: '/dashboard/restaurant/settings',
+                color: 'text-gray-400',
+                bgColor: 'bg-gray-400/10'
+            },
+        ]
+    }
+
+    const menuItems = getMenuItems()
 
     const handleLogout = async () => {
         await logout()
@@ -142,7 +191,7 @@ export const Sidebar = () => {
                                     <div>
                                         <h2 className="text-white font-bold text-lg">QuickBite</h2>
                                         <p className="text-gray-400 text-sm truncate">
-                                            Restaurant Portal
+                                            {user?.user_type === 'rider' ? 'Rider Portal' : 'Restaurant Portal'}
                                         </p>
                                     </div>
                                 </motion.div>
@@ -282,7 +331,7 @@ export const Sidebar = () => {
                                     </div>
                                     <div>
                                         <h2 className="text-white font-bold text-lg">QuickBite</h2>
-                                        <p className="text-gray-400 text-sm">Restaurant Portal</p>
+                                        <p className="text-gray-400 text-sm">{user?.user_type === 'rider' ? 'Rider Portal' : 'Restaurant Portal'}</p>
                                     </div>
                                 </div>
                             </div>
